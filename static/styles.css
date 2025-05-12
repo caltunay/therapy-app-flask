@@ -1,0 +1,86 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 75vh;
+    padding-bottom: 25px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.image-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+.main-image {
+    display: block;
+    max-width: 500px;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.instructions {
+    background: rgba(0,0,0,0.07);
+    color: #222;
+    padding: 20px 24px;
+    border-radius: 10px;
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+    font-size: 1.1em;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    position: static; /* Remove absolute positioning */
+}
+
+.button-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+button, .reject-button {
+    padding: 10px 24px;
+    font-size: 1em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #007bff;
+    color: #fff;
+    transition: background 0.2s;
+}
+
+.reject-button {
+    background: #dc3545;
+}
+
+button:hover, .reject-button:hover {
+    opacity: 0.9;
+}
+
+h1 {
+    font-size: 2.2em;
+    font-weight: bold
+}
+
+h3 {
+    font-size: 1.5em;
+    font-weight: normal;
+}

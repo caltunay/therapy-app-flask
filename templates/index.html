@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime ve Görsel Eşleştirme</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="center-container">
+        <div class="container">
+            <h1 style="margin-bottom: 24px; text-align: center;">
+                <!-- Ücretsiz Terapi Uygulaması İçin Destek Olun -->
+            </h1>
+            <div class="instructions">
+                <strong>Açıklama:</strong> Görseldeki kelimeyi tahmin etmeye calis.
+            </div>
+            <hr style="width: 60%; margin: 24px auto;">
+            {% if image_url %}
+            <div class="image-wrapper">
+                <img src="{{ image_url }}" alt="Resim" class="main-image">
+            </div>
+            <div id="censored-word" style="text-align:center; font-size:2em; margin-bottom:20px; letter-spacing: 0.2em;">
+                {{ censored }}
+            </div>
+            <div style="text-align:center;">
+                <button id="hint-btn">ipucu al</button>
+                <button id="next-btn" onclick="window.location.reload()">sonraki resim</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+    document.getElementById('hint-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch("{{ url_for('hint') }}", { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('censored-word').textContent = data.censored;
+            });
+    });
+    </script>
+</body>
+</html>
