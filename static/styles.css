@@ -9,8 +9,8 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 75vh;
-    padding-bottom: 25px;
+    min-height: 60vh; /* Reduced from 75vh */
+    padding-bottom: 10px; /* Reduced from 25px */
 }
 
 .container {
@@ -23,37 +23,38 @@ html, body {
 .image-wrapper {
     position: relative;
     display: inline-block;
-    margin-bottom: 24px;
+    margin-bottom: 12px; /* Reduced from 24px */
 }
 
 .main-image {
     display: block;
-    max-width: 500px;
+    max-width: 540px; /* Larger, but still limited */
     width: 100%;
     height: auto;
+    max-height: 440px; /* Add a max-height for better fit */
     border-radius: 10px;
 }
 
 .instructions {
     background: rgba(0,0,0,0.07);
     color: #222;
-    padding: 20px 24px;
+    padding: 12px 14px; /* Reduced padding */
     border-radius: 10px;
     text-align: center;
-    width: 90%;
-    max-width: 600px;
-    font-size: 1.1em;
+    width: 95%;
+    max-width: 600px; /* Larger */
+    font-size: 1em; /* Slightly smaller */
     box-sizing: border-box;
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* Reduced from 20px */
     margin-left: auto;
     margin-right: auto;
-    position: static; /* Remove absolute positioning */
+    position: static;
 }
 
 .button-row {
     display: flex;
-    gap: 16px;
-    margin-top: 16px;
+    gap: 10px; /* Reduced gap */
+    margin-top: 10px; /* Reduced margin */
 }
 
 button, .reject-button {
@@ -75,6 +76,24 @@ button:hover, .reject-button:hover {
     opacity: 0.9;
 }
 
+.hint-btn {
+    background: #ff9800; /* Orange for hint/help */
+    color: #fff;
+}
+
+.hint-btn:hover {
+    background: #fb8c00;
+}
+
+.next-btn {
+    background: #43a047; /* Green for next/action */
+    color: #fff;
+}
+
+.next-btn:hover {
+    background: #388e3c;
+}
+
 h1 {
     font-size: 2.2em;
     font-weight: bold
@@ -83,4 +102,24 @@ h1 {
 h3 {
     font-size: 1.5em;
     font-weight: normal;
+}
+
+@media (max-width: 600px) {
+    .main-image {
+        max-width: 340px;
+        max-height: 280px;
+    }
+    .instructions {
+        padding: 8px 6px;
+        font-size: 0.95em;
+        max-width: 99%;
+    }
+    .center-container {
+        min-height: 40vh;
+        padding-bottom: 4px;
+    }
+    .button-row {
+        gap: 6px;
+        margin-top: 6px;
+    }
 }

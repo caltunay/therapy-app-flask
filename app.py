@@ -3,6 +3,7 @@ import random
 import requests
 from dotenv import load_dotenv
 import os 
+import boto3 
 
 # load env variables
 load_dotenv()
@@ -10,26 +11,63 @@ load_dotenv()
 # get key from env
 SUPABASE_ANON_PUBLIC_KEY = os.getenv('SUPABASE_ANON_PUBLIC_KEY')
 SUPABASE_PROJECT_URL = os.getenv('SUPABASE_PROJECT_URL')
-SUPABASE_TABLE = "speech-therapy-data" 
+SUPABASE_TABLE = 'speech-therapy-s3-keys'
+
+AWS_ACCESS_KEY = os.getenv('AWS_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.getenv('AWS_REGION')
+AWS_BUCKET = 'therapy-app-s3'
+
+# Debug: print bucket name
+print(f"AWS_BUCKET value: '{AWS_BUCKET}'")
 
 # start app
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'dev')  # Needed for session
+app.secret_key = os.getenv('SECRET_KEY', 'dev')  
 
-@app.route('/', methods=['GET'])
-def index():
+def get_random_entry():
     headers = {
         "apikey": SUPABASE_ANON_PUBLIC_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_PUBLIC_KEY}"
     }
-    url = f"{SUPABASE_PROJECT_URL}/rest/v1/{SUPABASE_TABLE}?select=image_url,tr_word"
-    resp = requests.get(url, headers=headers)
-    data = resp.json()
+
+    response = requests.get(
+        f"{SUPABASE_PROJECT_URL}/rest/v1/{SUPABASE_TABLE}?select=s3_key,eng_word,tr_word",
+        headers=headers
+    )
+
+    if response.status_code != 200:
+        return None
+
+    data = response.json()
     if not data:
+        return None
+
+    return random.choice(data)
+
+def get_image_url(s3_key):
+    s3 = boto3.client('s3',
+                    region_name=AWS_REGION,
+                    aws_access_key_id=AWS_ACCESS_KEY,
+                    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+     
+    url = s3.generate_presigned_url('get_object',
+                                    Params={'Bucket': AWS_BUCKET, 'Key':s3_key},
+                                    ExpiresIn=3600
+    )
+
+    return url
+
+@app.route('/', methods=['GET'])
+def index():
+    item = get_random_entry()
+    if not item:
         return "No data found"
-    item = random.choice(data)
-    image_url = item.get('image_url', '')
+    s3_key = item.get('s3_key', '')
+    image_url = get_image_url(s3_key)
     tr_word = item.get('tr_word', '')
+
     # If session already has tr_word and image_url, use them
     if session.get('tr_word') == tr_word and session.get('image_url') == image_url:
         censored = session.get('censored', '_' * len(tr_word))
@@ -37,9 +75,11 @@ def index():
     else:
         session['tr_word'] = tr_word
         session['image_url'] = image_url
-        session['revealed_indices'] = []
-        censored = '_' * len(tr_word)
-        revealed_indices = []
+        revealed_indices = []  # Initialize before use
+        session['revealed_indices'] = revealed_indices
+        # Build censored string, keeping spaces as spaces
+        censored = ''.join([tr_word[i] if (i in revealed_indices or tr_word[i] == ' ') else '_' for i in range(len(tr_word))])
+        session['censored'] = censored
     return render_template('index.html', image_url=image_url, censored=censored, revealed=len(revealed_indices), tr_word=tr_word)
 
 @app.route('/hint', methods=['POST'])
@@ -47,14 +87,14 @@ def hint():
     tr_word = session.get('tr_word', '')
     image_url = session.get('image_url', '')
     revealed_indices = session.get('revealed_indices', [])
-    # Find unrevealed indices
-    unrevealed = [i for i in range(len(tr_word)) if i not in revealed_indices]
+    # Find unrevealed indices (ignore spaces)
+    unrevealed = [i for i in range(len(tr_word)) if i not in revealed_indices and tr_word[i] != ' ']
     if unrevealed:
         idx = random.choice(unrevealed)
         revealed_indices.append(idx)
         session['revealed_indices'] = revealed_indices
-    # Build censored string
-    censored = ''.join([tr_word[i] if i in revealed_indices else '_' for i in range(len(tr_word))])
+    # Build censored string, keeping spaces as spaces
+    censored = ''.join([tr_word[i] if (i in revealed_indices or tr_word[i] == ' ') else '_' for i in range(len(tr_word))])
     session.modified = True
     session['censored'] = censored
     return {'censored': censored, 'revealed': len(revealed_indices)}
