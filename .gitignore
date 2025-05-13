@@ -3,6 +3,7 @@
 
 # Python virtual environment directory (your specific name)
 flask-therapy-app/
+therapy-app-flask/
 
 # Python cache and compiled files
 __pycache__/
