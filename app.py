@@ -107,7 +107,7 @@ def pronounce():
     tr_word = session.get('tr_word', '')
     if not tr_word:
         return ('', 404)
-    tts = gTTS(text=tr_word, lang='tr')
+    tts = gTTS(text=tr_word, lang='tr', slow=True)
     mp3_fp = BytesIO()
     tts.write_to_fp(mp3_fp)
     mp3_fp.seek(0)

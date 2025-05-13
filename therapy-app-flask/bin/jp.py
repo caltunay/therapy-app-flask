@@ -1,4 +1,4 @@
-#!/Users/cenanaltunay/therapy-app-flask/therapy-app-flask/bin/python3.12
+#!/Users/cenan.altunay/therapy-app-flask/therapy-app-flask/bin/python
 
 import sys
 import json
