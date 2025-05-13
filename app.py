@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, send_file
 import random
 import requests
 from dotenv import load_dotenv
 import os 
 import boto3 
+from gtts import gTTS
+from io import BytesIO
 
 # load env variables
 load_dotenv()
@@ -77,6 +79,7 @@ def index():
         session['image_url'] = image_url
         revealed_indices = []  # Initialize before use
         session['revealed_indices'] = revealed_indices
+        
         # Build censored string, keeping spaces as spaces
         censored = ''.join([tr_word[i] if (i in revealed_indices or tr_word[i] == ' ') else '_' for i in range(len(tr_word))])
         session['censored'] = censored
@@ -98,6 +101,17 @@ def hint():
     session.modified = True
     session['censored'] = censored
     return {'censored': censored, 'revealed': len(revealed_indices)}
+
+@app.route('/pronounce')
+def pronounce():
+    tr_word = session.get('tr_word', '')
+    if not tr_word:
+        return ('', 404)
+    tts = gTTS(text=tr_word, lang='tr')
+    mp3_fp = BytesIO()
+    tts.write_to_fp(mp3_fp)
+    mp3_fp.seek(0)
+    return send_file(mp3_fp, mimetype='audio/mpeg')
 
 if __name__ == "__main__":
     app.run(debug=True)

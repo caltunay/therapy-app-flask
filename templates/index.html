@@ -27,6 +27,18 @@
                 <button id="hint-btn" class="hint-btn">ipucu al</button>
                 <button id="next-btn" class="next-btn" onclick="window.location.reload()">sonraki resim</button>
             </div>
+            <hr style="width: 60%; margin: 24px auto;">
+            <div style="text-align:center; margin-top: 20px;">
+                <div class="instructions" style="margin-bottom: 10px;">Kendi sesinizi kaydedip, dinleyin.</div>
+                <button id="record-btn" class="record-btn">Kaydı Başlat</button>
+                <button id="stop-btn" class="stop-btn" disabled>Kaydı Durdur</button>
+                <audio id="audio-recording" controls style="display:none;"></audio>
+            </div>
+            <hr style="width: 60%; margin: 24px auto;">
+            <div style="text-align:center; margin-top: 20px;">
+                <button id="pronounce-btn" class="pronounce-btn">Doğru Söylenişi Dinle</button>
+                <audio id="audio-pronounce" controls style="display:none;"></audio>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -39,6 +51,50 @@
                 document.getElementById('censored-word').textContent = data.censored;
             });
     });
+
+    // --- Audio Recording and Playback ---
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordBtn = document.getElementById('record-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const audioRecording = document.getElementById('audio-recording');
+
+    recordBtn.onclick = async function() {
+        audioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        mediaRecorder.ondataavailable = e => {
+            audioChunks.push(e.data);
+        };
+        mediaRecorder.onstop = e => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            audioRecording.src = URL.createObjectURL(audioBlob);
+            audioRecording.style.display = 'block';
+            audioRecording.play();
+        };
+    };
+    stopBtn.onclick = function() {
+        mediaRecorder.stop();
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+    };
+
+    // --- Pronunciation (TTS) ---
+    const pronounceBtn = document.getElementById('pronounce-btn');
+    const audioPronounce = document.getElementById('audio-pronounce');
+    pronounceBtn.onclick = function() {
+        fetch('/pronounce')
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                audioPronounce.src = url;
+                audioPronounce.style.display = 'block';
+                audioPronounce.play();
+            });
+    };
     </script>
 </body>
 </html>

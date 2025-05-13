@@ -94,6 +94,51 @@ button:hover, .reject-button:hover {
     background: #388e3c;
 }
 
+.record-btn {
+    background: #e53935; /* Red */
+    color: #fff;
+}
+
+.record-btn:hover {
+    background: #b71c1c;
+}
+
+.stop-btn {
+    background: #757575; /* Gray */
+    color: #fff;
+}
+
+.stop-btn:hover {
+    background: #424242;
+}
+
+.play-recording-btn {
+    background: #00897b; /* Teal */
+    color: #fff;
+}
+
+.play-recording-btn:hover {
+    background: #00695c;
+}
+
+.pronounce-btn {
+    background: #8e24aa; /* Purple */
+    color: #fff;
+}
+
+.pronounce-btn:hover {
+    background: #5e188c;
+}
+
+.play-pronounce-btn {
+    background: #3949ab; /* Indigo */
+    color: #fff;
+}
+
+.play-pronounce-btn:hover {
+    background: #1a237e;
+}
+
 h1 {
     font-size: 2.2em;
     font-weight: bold
