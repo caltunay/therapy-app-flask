@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for, send_file
+from flask import Flask, render_template, request, session, redirect, url_for, send_file, jsonify
 import random
 import requests
 from dotenv import load_dotenv
@@ -112,6 +112,26 @@ def pronounce():
     tts.write_to_fp(mp3_fp)
     mp3_fp.seek(0)
     return send_file(mp3_fp, mimetype='audio/mpeg')
+
+@app.route('/guess', methods=['POST'])
+def guess():
+    data = request.get_json()
+    idx = int(data.get('index'))
+    letter = data.get('letter', '').strip()
+    tr_word = session.get('tr_word', '')
+    revealed_indices = session.get('revealed_indices', [])
+    if idx < 0 or idx >= len(tr_word):
+        return jsonify({'success': False})
+    if tr_word[idx].lower() == letter.lower():
+        if idx not in revealed_indices:
+            revealed_indices.append(idx)
+            session['revealed_indices'] = revealed_indices
+            censored = ''.join([tr_word[i] if (i in revealed_indices or tr_word[i] == ' ') else '_' for i in range(len(tr_word))])
+            session['censored'] = censored
+            session.modified = True
+        return jsonify({'success': True, 'censored': session['censored']})
+    else:
+        return jsonify({'success': False})
 
 if __name__ == "__main__":
     app.run(debug=True)
