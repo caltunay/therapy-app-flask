@@ -1,58 +1,54 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Türkçe Kelime Oyunu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Kelimeyi Tahmin Et</h1>
-        
-        <div class="image-container">
-            <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" class="main-image">
-        </div>
+{% extends "layout.html" %}
 
-        <div class="word-display" id="censored-word">
-            {% for i in range(tr_word|length) %}
-                {% if tr_word[i] == ' ' %}
-                    <span class="space">&nbsp;&nbsp;</span>
-                {% elif censored[i] == '_' %}
-                    <span class="letter" data-index="{{ i }}">_</span>
-                {% else %}
-                    <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
-                {% endif %}
-            {% endfor %}
-        </div>
+{% block title %}Kelime Çalışması{% endblock %}
 
-        <div class="navigation-controls">
-            <button id="hint-btn" class="hint-btn">İpucu Al</button>
-            <button id="next-btn" class="next-btn">Sonraki Resim</button>
-        </div>
-        
-        <hr class="section-divider">
-        
-        <div class="speech-controls">
-            <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
-            <audio id="audio-recording" controls style="display:none;"></audio>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="pronounciation-controls">
-          <button id="pronounce-btn" class="pronounce-btn">Doğru Telaffuzu Dinle</button>
-          <audio id="audio-pronounce" controls style="display:none;"></audio>
-        </div>
-
-      <hr class="section-divider">
-
-        <div id="message-area">
-            <!-- Messages will be displayed here -->
-        </div>
+{% block content %}
+    <h1>Kelimeyi Tahmin Et</h1>
+    
+    <div class="image-container">
+        <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" class="main-image">
     </div>
 
-    <script>
+    <div class="word-display" id="censored-word">
+        {% for i in range(tr_word|length) %}
+            {% if tr_word[i] == ' ' %}
+                <span class="space">&nbsp;&nbsp;</span>
+            {% elif censored[i] == '_' %}
+                <span class="letter" data-index="{{ i }}">_</span>
+            {% else %}
+                <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="navigation-controls">
+        <button id="hint-btn" class="hint-btn">İpucu Al</button>
+        <button id="next-btn" class="next-btn">Sonraki Resim</button>
+    </div>
+    
+    <hr class="section-divider">
+    
+    <div class="speech-controls">
+        <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
+        <audio id="audio-recording" controls style="display:none;"></audio>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="pronounciation-controls">
+      <button id="pronounce-btn" class="pronounce-btn">Doğru Telaffuzu Dinle</button>
+      <audio id="audio-pronounce" controls style="display:none;"></audio>
+    </div>
+
+    <hr class="section-divider">
+
+    <div id="message-area">
+        <!-- Messages will be displayed here -->
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
     // Initialize variables
     let mediaRecorder;
     let audioChunks = [];
@@ -196,6 +192,5 @@
             messageArea.innerHTML = '<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>';
         }
     }
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

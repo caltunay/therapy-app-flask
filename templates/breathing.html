@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block title %}Nefes Çalışması{% endblock %}
+
+{% block content %}
+    <h1>🧘‍♀️ Nefes Egzersizi</h1>
+    
+    <div class="breathing-container">
+        <div class="breathing-controls">
+            <form id="breathing-form" action="/breathing" method="get">
+                <div class="control-group">
+                    <label for="breath-duration">Nefes alma/verme süresi (saniye):</label>
+                    <input type="range" min="1" max="10" value="{{ breath_duration }}" class="breathing-slider" id="breath-duration" name="breath_duration">
+                    <span id="breath-duration-value">{{ breath_duration }}</span>
+                </div>
+                
+                <div class="control-group">
+                    <label for="hold-duration">Nefesi tutma süresi (saniye):</label>
+                    <input type="range" min="1" max="10" value="{{ hold_duration }}" class="breathing-slider" id="hold-duration" name="hold_duration">
+                    <span id="hold-duration-value">{{ hold_duration }}</span>
+                </div>
+            </form>
+        </div>
+        
+        <div class="navigation-controls">
+            <button id="start-btn" class="next-btn">Başlat</button>
+            <button id="stop-btn" class="hint-btn" style="display: none;">Durdur</button>
+        </div>
+        
+        <div class="breathing-label" id="breathing-label">Hazır</div>
+        
+        <div class="breathing-circle" id="breathing-circle" style="width:100px; height:100px; background-color:#4CAF50;"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const breathDurationSlider = document.getElementById('breath-duration');
+        const breathDurationValue = document.getElementById('breath-duration-value');
+        const holdDurationSlider = document.getElementById('hold-duration');
+        const holdDurationValue = document.getElementById('hold-duration-value');
+        const breathingCircle = document.getElementById('breathing-circle');
+        const breathingLabel = document.getElementById('breathing-label');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        
+        let eventSource = null;
+        
+        // Update duration values when sliders change
+        breathDurationSlider.addEventListener('input', function() {
+            breathDurationValue.textContent = this.value;
+        });
+        
+        holdDurationSlider.addEventListener('input', function() {
+            holdDurationValue.textContent = this.value;
+        });
+        
+        // Start button event listener
+        startBtn.addEventListener('click', function() {
+            if (eventSource) return;
+            
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            
+            // Get current slider values
+            const breathDuration = breathDurationSlider.value;
+            const holdDuration = holdDurationSlider.value;
+            
+            // Start server-sent events
+            const url = `/breathing/start?breath_duration=${breathDuration}&hold_duration=${holdDuration}`;
+            eventSource = new EventSource(url);
+            
+            // Listen for breathing updates from the server
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                // Update circle size and color
+                breathingCircle.style.width = `${data.circle_size}px`;
+                breathingCircle.style.height = `${data.circle_size}px`;
+                breathingCircle.style.backgroundColor = data.color;
+                
+                // Update label
+                breathingLabel.textContent = data.label;
+            };
+            
+            eventSource.onerror = function() {
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+                stopBtn.style.display = 'none';
+                startBtn.style.display = 'inline-block';
+                breathingLabel.textContent = 'Hazır';
+            };
+        });
+        
+        // Stop button event listener
+        stopBtn.addEventListener('click', function() {
+            stopBtn.style.display = 'none';
+            startBtn.style.display = 'inline-block';
+            
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            
+            // Reset to initial state
+            breathingCircle.style.width = '100px';
+            breathingCircle.style.height = '100px';
+            breathingCircle.style.backgroundColor = '#4CAF50';
+            breathingLabel.textContent = 'Hazır';
+        });
+    });
+</script>
+{% endblock %}
