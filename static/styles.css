@@ -3,36 +3,69 @@ html, body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+body {
+    background-color: #f5f5f5;
 }
 
 .center-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 60vh; /* Reduced from 75vh */
-    padding-bottom: 10px; /* Reduced from 25px */
+    min-height: 60vh;
+    padding-bottom: 5px; /* Further reduced padding */
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh; /* Set a maximum height for the container */
+    margin: 10px auto; /* Reduced from 20px */
+    padding: 15px; /* Reduced from 20px */
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow-y: auto; /* Add scrolling only when necessary */
+}
+
+.image-container {
+    margin-bottom: 10px; /* Reduced from 20px */
+    text-align: center;
 }
 
 .image-wrapper {
     position: relative;
     display: inline-block;
-    margin-bottom: 12px; /* Reduced from 24px */
+    margin-bottom: 8px; /* Reduced from 12px */
 }
 
 .main-image {
     display: block;
-    max-width: 540px; /* Larger, but still limited */
+    max-width: 540px;
     width: 100%;
     height: auto;
-    max-height: 440px; /* Add a max-height for better fit */
+    max-height: 35vh; /* Use viewport height to ensure it's proportional */
     border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    object-fit: contain; /* Ensure the image is fully visible */
+}
+
+.word-display {
+    margin: 15px 0; /* Reduced from 20px */
+    text-align: center;
+    font-size: 1.8em; /* Reduced from 2em */
+    letter-spacing: 3px; /* Reduced from 4px */
+    max-width: 100%;
+    overflow-wrap: break-word; /* Handle long words */
+    display: flex;
+    flex-wrap: wrap; /* Allow letters to wrap */
+    justify-content: center;
 }
 
 .instructions {
@@ -51,10 +84,42 @@ html, body {
     position: static;
 }
 
+.input-area {
+    display: flex;
+    margin: 15px 0;
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+}
+
+#letter-input {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px 0 0 4px;
+    width: 60%;
+}
+
+#guess-button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
 .button-row {
     display: flex;
     gap: 10px; /* Reduced gap */
     margin-top: 10px; /* Reduced margin */
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
 }
 
 button, .reject-button {
@@ -76,9 +141,18 @@ button:hover, .reject-button:hover {
     opacity: 0.9;
 }
 
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .hint-btn {
     background: #ff9800; /* Orange for hint/help */
     color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .hint-btn:hover {
@@ -88,6 +162,10 @@ button:hover, .reject-button:hover {
 .next-btn {
     background: #43a047; /* Green for next/action */
     color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .next-btn:hover {
@@ -97,15 +175,40 @@ button:hover, .reject-button:hover {
 .record-btn {
     background: #e53935; /* Red */
     color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .record-btn:hover {
     background: #b71c1c;
 }
 
+.record-btn.recording {
+    background-color: #d32f2f;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(211, 47, 47, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0);
+    }
+}
+
 .stop-btn {
     background: #757575; /* Gray */
     color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .stop-btn:hover {
@@ -124,6 +227,10 @@ button:hover, .reject-button:hover {
 .pronounce-btn {
     background: #8e24aa; /* Purple */
     color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .pronounce-btn:hover {
@@ -139,28 +246,75 @@ button:hover, .reject-button:hover {
     background: #1a237e;
 }
 
+.speech-recognition {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.navigation-controls {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0; /* Reduced from 15px */
+    justify-content: center;
+}
+
+.speech-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Reduced from 12px */
+    margin: 10px 0; /* Reduced from 20px */
+}
+
 .letter {
     display: inline-block;
-    width: 1.2em;
+    width: 1.1em; /* Slightly reduced from 1.2em */
     text-align: center;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 2px solid #333;
+    margin: 0 3px 5px 3px; /* Added bottom margin and reduced side margins */
     cursor: pointer;
 }
 
 .letter.revealed {
     font-weight: bold;
     color: #222;
+    border-bottom: 2px solid transparent;
 }
 
 .space {
     display: inline-block;
     width: 1.2em;
     height: 1.2em;
+    margin: 0 5px;
+}
+
+#message-area {
+    margin-top: 15px;
+    text-align: center;
+    min-height: 30px;
+}
+
+.success-message {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.error-message {
+    color: #f44336;
+    font-weight: bold;
+}
+
+audio {
+    margin-top: 10px;
 }
 
 h1 {
-    font-size: 2.2em;
-    font-weight: bold
+    font-size: 1.8em; /* Reduced from 2.2em */
+    font-weight: bold;
+    margin: 10px 0; /* Add margin control */
 }
 
 h3 {
@@ -168,22 +322,67 @@ h3 {
     font-weight: normal;
 }
 
+.section-divider {
+    width: 80%;
+    margin: 10px auto; /* Reduced from 20px */
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
+}
+
 @media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 10px; /* Further reduced padding */
+        margin: 5px auto; /* Further reduced margin */
+    }
+    
     .main-image {
         max-width: 340px;
         max-height: 280px;
     }
+    
+    .word-display {
+        font-size: 1.3em; /* Further reduced for mobile */
+        letter-spacing: 1px; /* Reduced spacing for mobile */
+    }
+    
     .instructions {
         padding: 8px 6px;
         font-size: 0.95em;
         max-width: 99%;
     }
+    
     .center-container {
         min-height: 40vh;
         padding-bottom: 4px;
     }
+    
     .button-row {
         gap: 6px;
         margin-top: 6px;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .input-area {
+        max-width: 250px;
+    }
+
+    .navigation-controls, 
+    .speech-controls {
+        gap: 8px;
+    }
+    
+    .section-divider {
+        margin: 8px auto; /* Further reduced margin */
+    }
+    
+    h1 {
+        font-size: 1.5em; /* Smaller header for mobile */
+        margin: 5px 0;
     }
 }

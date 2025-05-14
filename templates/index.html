@@ -1,99 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelime ve Görsel Eşleştirme</title>
+    <title>Türkçe Kelime Oyunu</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="center-container">
-        <div class="container">
-            <h1 style="margin-bottom: 24px; text-align: center;">
-                <!-- Ücretsiz Terapi Uygulaması İçin Destek Olun -->
-            </h1>
-            <div class="instructions">
-                <strong>Açıklama:</strong> Görseldeki kelimeyi tahmin etmeye calis.
-            </div>
-            <hr style="width: 60%; margin: 24px auto;">
-            {% if image_url %}
-            <div class="image-wrapper">
-                <img src="{{ image_url }}" alt="Resim" class="main-image">
-            </div>
-            <div id="censored-word" style="text-align:center; font-size:2em;">
-              {% for i in range(tr_word|length) %}
+    <div class="container">
+        <h1>Kelimeyi Tahmin Et</h1>
+        
+        <div class="image-container">
+            <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" class="main-image">
+        </div>
+
+        <div class="word-display" id="censored-word">
+            {% for i in range(tr_word|length) %}
                 {% if tr_word[i] == ' ' %}
-                  <span class="space">&nbsp;&nbsp;</span>
+                    <span class="space">&nbsp;&nbsp;</span>
                 {% elif censored[i] == '_' %}
-                  <span class="letter" data-index="{{ i }}">_</span>
+                    <span class="letter" data-index="{{ i }}">_</span>
                 {% else %}
-                  <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
+                    <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
                 {% endif %}
-              {% endfor %}
-            </div>
-            <div style="text-align:center;">
-                <button id="hint-btn" class="hint-btn">ipucu al</button>
-                <button id="next-btn" class="next-btn" onclick="window.location.reload()">sonraki resim</button>
-            </div>
-            <hr style="width: 60%; margin: 24px auto;">
-            <div style="text-align:center; margin-top: 20px;">
-                <div class="instructions" style="margin-bottom: 10px;">Kendi sesinizi kaydedip, dinleyin.</div>
-                <button id="record-btn" class="record-btn">Kaydı Başlat</button>
-                <button id="stop-btn" class="stop-btn" disabled>Kaydı Durdur</button>
-                <audio id="audio-recording" controls style="display:none;"></audio>
-            </div>
-            <hr style="width: 60%; margin: 24px auto;">
-            <div style="text-align:center; margin-top: 20px;">
-                <button id="pronounce-btn" class="pronounce-btn">Doğru Söylenişi Dinle</button>
-                <audio id="audio-pronounce" controls style="display:none;"></audio>
-            </div>
-            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="navigation-controls">
+            <button id="hint-btn" class="hint-btn">İpucu Al</button>
+            <button id="next-btn" class="next-btn">Sonraki Resim</button>
+        </div>
+        
+        <hr class="section-divider">
+        
+        <div class="speech-controls">
+            <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
+            <audio id="audio-recording" controls style="display:none;"></audio>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="pronounciation-controls">
+          <button id="pronounce-btn" class="pronounce-btn">Doğru Telaffuzu Dinle</button>
+          <audio id="audio-pronounce" controls style="display:none;"></audio>
+        </div>
+
+      <hr class="section-divider">
+
+        <div id="message-area">
+            <!-- Messages will be displayed here -->
         </div>
     </div>
+
     <script>
-    document.getElementById('hint-btn').addEventListener('click', function(e) {
-        e.preventDefault();
+    // Initialize variables
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordToggleBtn = document.getElementById('record-toggle-btn');
+    const audioRecording = document.getElementById('audio-recording');
+    const audioPronounce = document.getElementById('audio-pronounce');
+    const hintBtn = document.getElementById('hint-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pronounceBtn = document.getElementById('pronounce-btn');
+    const messageArea = document.getElementById('message-area');
+    let isRecording = false;
+
+    // Hint button functionality
+    hintBtn.addEventListener('click', function() {
         fetch("{{ url_for('hint') }}", { method: 'POST' })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('censored-word').textContent = data.censored;
+                updateCensoredWord(data.censored);
             });
     });
 
-    // --- Audio Recording and Playback ---
-    let mediaRecorder;
-    let audioChunks = [];
-    const recordBtn = document.getElementById('record-btn');
-    const stopBtn = document.getElementById('stop-btn');
-    const audioRecording = document.getElementById('audio-recording');
+    // Next button functionality
+    nextBtn.addEventListener('click', function() {
+        window.location.reload();
+    });
 
-    recordBtn.onclick = async function() {
-        audioChunks = [];
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.start();
-        recordBtn.disabled = true;
-        stopBtn.disabled = false;
-        mediaRecorder.ondataavailable = e => {
-            audioChunks.push(e.data);
-        };
-        mediaRecorder.onstop = e => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            audioRecording.src = URL.createObjectURL(audioBlob);
-            audioRecording.style.display = 'block';
-            audioRecording.play();
-        };
-    };
-    stopBtn.onclick = function() {
-        mediaRecorder.stop();
-        recordBtn.disabled = false;
-        stopBtn.disabled = true;
-    };
-
-    // --- Pronunciation (TTS) ---
-    const pronounceBtn = document.getElementById('pronounce-btn');
-    const audioPronounce = document.getElementById('audio-pronounce');
-    pronounceBtn.onclick = function() {
+    // Pronunciation button functionality
+    pronounceBtn.addEventListener('click', function() {
         fetch('/pronounce')
             .then(response => response.blob())
             .then(blob => {
@@ -102,80 +89,112 @@
                 audioPronounce.style.display = 'block';
                 audioPronounce.play();
             });
-    };
-
-    // --- Letter Guessing ---
-    document.querySelectorAll('.letter').forEach(span => {
-      span.addEventListener('click', function() {
-        if (this.textContent !== '_') return;
-        const idx = this.dataset.index;
-        const input = prompt("Enter a letter:");
-        if (input && input.length === 1) {
-          fetch('/guess', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({index: idx, letter: input})
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              updateCensoredWord(data.censored); // This redraws the word correctly
-            } else {
-              alert('Incorrect letter!');
-            }
-          });
-        }
-      });
     });
+
+    // Keep letter click functionality for backward compatibility
+    document.querySelectorAll('.letter').forEach(span => {
+        span.addEventListener('click', letterClickHandler);
+    });
+
+    function letterClickHandler() {
+        if (this.textContent !== '_') return;
+        
+        // Clear any previous messages when attempting a new guess
+        messageArea.innerHTML = '';
+        
+        const idx = this.dataset.index;
+        const input = prompt("Bir harf girin:");
+        
+        // Ensure input is a single character
+        if (input && input.length === 1 && /^[a-zA-ZğüşıöçĞÜŞİÖÇ]$/.test(input)) {
+            fetch('/guess', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({index: idx, letter: input})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateCensoredWord(data.censored);
+                } else {
+                    messageArea.innerHTML = '<p class="error-message">Yanlış tahmin!</p>';
+                }
+            });
+        } else if (input) {
+            // Show error message if input is not a single letter
+            messageArea.innerHTML = '<p class="error-message">Lütfen sadece bir harf girin!</p>';
+        }
+    }
+
+    // Toggle recording button functionality
+    recordToggleBtn.onclick = async function() {
+        if (!isRecording) {
+            // Start recording
+            audioChunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordToggleBtn.textContent = "Kaydı Durdur";
+            recordToggleBtn.classList.add("recording");
+            messageArea.innerHTML = '<p>Kayıt yapılıyor...</p>';
+            
+            mediaRecorder.ondataavailable = e => {
+                audioChunks.push(e.data);
+            };
+            
+            mediaRecorder.onstop = e => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                audioRecording.src = URL.createObjectURL(audioBlob);
+                audioRecording.style.display = 'block';
+                audioRecording.play();
+                messageArea.innerHTML = '<p>Kaydınız oynatılıyor...</p>';
+                
+                // Reset button state
+                isRecording = false;
+                recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+                recordToggleBtn.classList.remove("recording");
+            };
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            isRecording = false;
+            recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+            recordToggleBtn.classList.remove("recording");
+        }
+    };
 
     // Helper function to update the censored word display
     function updateCensoredWord(censored) {
-    const trWord = "{{ tr_word }}";
-    const container = document.getElementById('censored-word');
-    container.innerHTML = '';
-    for (let i = 0; i < trWord.length; i++) {
-        if (trWord[i] === ' ') {
-        const span = document.createElement('span');
-        span.className = 'space';
-        span.textContent = ' ';
-        container.appendChild(span);
-        } else if (censored[i] === '_') {
-        const span = document.createElement('span');
-        span.className = 'letter';
-        span.dataset.index = i;
-        span.textContent = '_';
-        span.addEventListener('click', letterClickHandler);
-        container.appendChild(span);
-        } else {
-        const span = document.createElement('span');
-        span.className = 'letter revealed';
-        span.dataset.index = i;
-        span.textContent = censored[i];
-        container.appendChild(span);
+        const trWord = "{{ tr_word }}";
+        const container = document.getElementById('censored-word');
+        container.innerHTML = '';
+        for (let i = 0; i < trWord.length; i++) {
+            if (trWord[i] === ' ') {
+                const span = document.createElement('span');
+                span.className = 'space';
+                span.innerHTML = '&nbsp;&nbsp;';
+                container.appendChild(span);
+            } else if (censored[i] === '_') {
+                const span = document.createElement('span');
+                span.className = 'letter';
+                span.dataset.index = i;
+                span.textContent = '_';
+                span.addEventListener('click', letterClickHandler);
+                container.appendChild(span);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'letter revealed';
+                span.dataset.index = i;
+                span.textContent = censored[i];
+                container.appendChild(span);
+            }
         }
-    }
-    }
-
-    // Extracted click handler for reuse
-    function letterClickHandler() {
-      if (this.textContent !== '_') return;
-      const idx = this.dataset.index;
-      const input = prompt("Enter a letter:");
-      if (input && input.length === 1) {
-        fetch('/guess', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({index: idx, letter: input})
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            updateCensoredWord(data.censored); // This redraws the word correctly
-          } else {
-            alert('Incorrect letter!');
-          }
-        });
-      }
+        
+        // Check if all letters are revealed
+        if (!censored.includes('_')) {
+            messageArea.innerHTML = '<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>';
+        }
     }
     </script>
 </body>
