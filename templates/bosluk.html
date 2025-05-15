@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block title %}Boşluk Doldurmaca{% endblock %}
+
+{% block content %}
+    <h1>Boşluk Doldurmaca</h1>
+    <div class="difficulty-slider-container" style="margin-bottom: 20px; text-align:center;">
+        <label for="difficulty-slider"></label>
+        <input type="range" min="0" max="1" value="{% if difficulty == 'kolay' %}0{% else %}1{% endif %}" id="difficulty-slider">
+        <div style="display:flex; justify-content:space-between; font-size:0.9em; margin-top:2px;">
+            <span>Kolay</span><span>Zor</span>
+        </div>
+    </div>
+    <div class="sentence-container">
+        <p>{{ sentence }}</p>
+    </div>
+    <input type="hidden" id="original-sentence" value="{{ original_sentence }}">
+    {% if word_boxes %}
+    <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0;">
+        {% for word in word_boxes %}
+            <div class="word-box" style="border:1px solid #ccc; border-radius:6px; padding:10px 18px; font-size:1.2em; min-width:40px; text-align:center; background:#f7f7f7; cursor:pointer;" data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
+                {% if difficulty == 'zor' %}
+                    {{ word }}
+                {% else %}
+                    {{ word }}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div id="feedback-message" style="text-align:center; margin:15px 0; font-weight:bold; min-height:24px;"></div>
+    
+    <div class="navigation-controls">
+        <button id="next-sentence-btn" class="next-btn">Sonraki Cümleye Geç</button>
+    </div>
+    <hr class="section-divider">
+    <div class="speech-controls">
+        <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
+        <audio id="audio-recording" controls style="display:none;"></audio>
+    </div>
+    <hr class="section-divider">
+    <div class="pronounciation-controls">
+        <button id="pronounce-sentence-btn" class="pronounce-btn">Cümleyi Dinle</button>
+        <audio id="audio-pronounce-sentence" controls style="display:none;"></audio>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const slider = document.getElementById('difficulty-slider');
+    const label = document.getElementById('difficulty-label');
+    const DIFFICULTY_MAP = ['kolay', 'zor'];
+    const feedbackMessage = document.getElementById('feedback-message');
+    const hiddenWord = "{{ original_word }}";
+    
+    // Make word boxes clickable
+    document.querySelectorAll('.word-box').forEach(box => {
+        box.addEventListener('click', function() {
+            const selectedWord = this.getAttribute('data-word');
+            if ("{{ difficulty }}" === "zor") {
+                if (selectedWord === hiddenWord) {
+                    feedbackMessage.textContent = "Tebrikler! Doğru kelimeyi buldunuz.";
+                    feedbackMessage.style.color = "#4CAF50"; // Green
+                    this.style.backgroundColor = "#4CAF50";
+                    this.style.color = "white";
+                    document.querySelectorAll('.word-box').forEach(b => {
+                        b.style.pointerEvents = "none";
+                    });
+                } else {
+                    feedbackMessage.textContent = "Yanlış cevap. Tekrar deneyin.";
+                    feedbackMessage.style.color = "#f44336"; // Red
+                    const originalBg = this.style.backgroundColor;
+                    this.style.backgroundColor = "#f44336";
+                    this.style.color = "white";
+                    setTimeout(() => {
+                        this.style.backgroundColor = originalBg;
+                        this.style.color = "black";
+                    }, 500);
+                }
+            } else {
+                // Kolay mode: check if selected box matches first half of original word
+                const originalWord = "{{ original_word }}";
+                const half = Math.floor(originalWord.length / 2);
+                const firstHalf = originalWord.substring(0, half);
+                if (selectedWord === firstHalf) {
+                    feedbackMessage.textContent = "Tebrikler! Doğru kelimeyi buldunuz.";
+                    feedbackMessage.style.color = "#4CAF50";
+                    this.style.backgroundColor = "#4CAF50";
+                    this.style.color = "white";
+                    document.querySelectorAll('.word-box').forEach(b => {
+                        b.style.pointerEvents = "none";
+                    });
+                } else {
+                    feedbackMessage.textContent = "Yanlış cevap. Tekrar deneyin.";
+                    feedbackMessage.style.color = "#f44336";
+                    const originalBg = this.style.backgroundColor;
+                    this.style.backgroundColor = "#f44336";
+                    this.style.color = "white";
+                    setTimeout(() => {
+                        this.style.backgroundColor = originalBg;
+                        this.style.color = "black";
+                    }, 500);
+                }
+            }
+        });
+    });
+    
+    slider.oninput = function() {
+        label.textContent = ['Kolay', 'Zor'][this.value];
+    };
+    slider.onchange = function() {
+        const diff = DIFFICULTY_MAP[this.value];
+        const url = new URL(window.location.href);
+        url.searchParams.set('difficulty', diff);
+        window.location.href = url.toString();
+    };
+    document.getElementById('next-sentence-btn').onclick = function() {
+        // Keep current difficulty
+        const diff = DIFFICULTY_MAP[slider.value];
+        const url = new URL(window.location.href);
+        url.searchParams.set('difficulty', diff);
+        window.location.href = url.toString();
+    };
+
+    // --- Voice Recording Logic 
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordToggleBtn = document.getElementById('record-toggle-btn');
+    const audioRecording = document.getElementById('audio-recording');
+    let isRecording = false;
+    // Add a message area for feedback
+    let messageArea = document.getElementById('message-area');
+    if (!messageArea) {
+        messageArea = document.createElement('div');
+        messageArea.id = 'message-area';
+        document.querySelector('.speech-controls').appendChild(messageArea);
+    }
+    recordToggleBtn.onclick = async function() {
+        if (!isRecording) {
+            audioChunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordToggleBtn.textContent = "Kaydı Durdur";
+            recordToggleBtn.classList.add("recording");
+            // messageArea.innerHTML = '<p>Kayıt yapılıyor...</p>';
+            mediaRecorder.ondataavailable = e => {
+                audioChunks.push(e.data);
+            };
+            mediaRecorder.onstop = e => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                audioRecording.src = URL.createObjectURL(audioBlob);
+                audioRecording.style.display = 'block';
+                audioRecording.play();
+                messageArea.innerHTML = '';
+                isRecording = false;
+                recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+                recordToggleBtn.classList.remove("recording");
+            };
+        } else {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+            recordToggleBtn.classList.remove("recording");
+        }
+    };
+
+    // --- Pronounce Sentence 
+    const pronounceSentenceBtn = document.getElementById('pronounce-sentence-btn');
+    const audioPronounceSentence = document.getElementById('audio-pronounce-sentence');
+    const originalSentence = document.getElementById('original-sentence').value;
+    pronounceSentenceBtn.onclick = function() {
+        // Use the original sentence (not the censored one)
+        fetch('/bosluk/pronounce_sentence?sentence=' + encodeURIComponent(originalSentence))
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                audioPronounceSentence.src = url;
+                audioPronounceSentence.style.display = 'block';
+                audioPronounceSentence.play();
+            });
+    };
+</script>
+{% endblock %}

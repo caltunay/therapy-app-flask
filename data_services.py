@@ -35,6 +35,27 @@ def get_random_entry():
 
     return random.choice(data)
 
+def get_random_sentence(difficulty=None, apply_filter=True):
+    """Get a random sentence from the sentence-list table without filtering by difficulty
+    
+    Args:
+        difficulty (str, optional): The difficulty level. Defaults to None.
+        apply_filter (bool, optional): Whether to apply the difficulty filter. Defaults to True.
+    """
+    headers = {
+        "apikey": SUPABASE_ANON_PUBLIC_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_PUBLIC_KEY}"
+    }
+    
+    url = f"{SUPABASE_PROJECT_URL}/rest/v1/{SENTENCE_TABLE}?select=sentence,ease_degree"
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return None
+    data = response.json()
+    if not data:
+        return None
+    return random.choice(data)
+
 def get_image_url(s3_key):
     """Generate a presigned URL for the S3 object"""
     s3 = boto3.client('s3',

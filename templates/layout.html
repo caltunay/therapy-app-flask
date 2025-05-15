@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     {% block head %}{% endblock %}
     <style>
-        /* ...existing styles... */
         .word-display {
             display: flex;
             flex-wrap: wrap;
@@ -28,13 +27,13 @@
             font-weight: bold;
             margin: 0 2px;
         }
-        /* ...existing styles... */
     </style>
 </head>
 <body>
     <div class="nav-menu">
-        <a href="{{ url_for('index') }}" class="nav-item {% if request.path == url_for('index') %}active{% endif %}">Kelime Çalışması</a>
         <a href="{{ url_for('breathing_bp.index') }}" class="nav-item {% if request.path == url_for('breathing_bp.index') %}active{% endif %}">Nefes Çalışması</a>
+        <a href="{{ url_for('index') }}" class="nav-item {% if request.path == url_for('index') %}active{% endif %}">Kelime Çalışması</a>
+        <a href="{{ url_for('bosluk_bp.index') }}" class="nav-item {% if request.path == url_for('bosluk_bp.index') %}active{% endif %}">Boşluk Doldurmaca</a>
     </div>
     
     <div class="container">

@@ -7,6 +7,7 @@ from io import BytesIO
 
 # Import the blueprints and services
 from breathing import breathing_bp
+from bosluk import bosluk_bp
 from data_services import get_random_entry, get_image_url
 
 # load env variables
@@ -18,6 +19,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'dev')
 
 # Register the breathing blueprint
 app.register_blueprint(breathing_bp)
+app.register_blueprint(bosluk_bp)
 
 @app.route('/', methods=['GET'])
 def index():
