@@ -5,10 +5,14 @@ html, body {
     box-sizing: border-box;
     font-family: Arial, sans-serif;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 body {
     background-color: #f5f5f5;
+    flex: 1 0 auto;
 }
 
 .center-container {
@@ -32,6 +36,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     overflow-y: auto; /* Add scrolling only when necessary */
+    flex: 1 0 auto;
 }
 
 .image-container {
@@ -400,6 +405,29 @@ h3 {
 .control-group {
     margin: 10px 0;
     text-align: center;
+}
+
+footer {
+    flex-shrink: 0;
+    background: #222;
+    color: #fff;
+    text-align: center;
+    padding: 4px 0 2px 0;
+    font-size: 0.95em;
+    margin-top: 20px;
+    display: inline-block;
+    width: auto;
+    min-width: 0;
+    border-radius: 8px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+footer a {
+    color: #4FC3F7;
+    text-decoration: underline;
 }
 
 @media (max-width: 600px) {
