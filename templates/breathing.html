@@ -7,7 +7,7 @@
     
     <div class="breathing-container">
         <div class="breathing-controls">
-            <form id="breathing-form" action="/breathing" method="get">
+            <form id="breathing-form" action="{{ url_for('breathing_bp.index') }}" method="get">
                 <div class="control-group">
                     <label for="breath-duration">Nefes alma/verme süresi (saniye):</label>
                     <input type="range" min="1" max="10" value="{{ breath_duration }}" class="breathing-slider" id="breath-duration" name="breath_duration">
@@ -68,8 +68,8 @@
             const holdDuration = holdDurationSlider.value;
             
             // Start server-sent events
-            const url = `/breathing/start?breath_duration=${breathDuration}&hold_duration=${holdDuration}`;
-            eventSource = new EventSource(url);
+            var source = new EventSource("{{ url_for('breathing_bp.start') }}?breath_duration=" + breathDuration + "&hold_duration=" + holdDuration);
+            eventSource = source;
             
             // Listen for breathing updates from the server
             eventSource.onmessage = function(event) {
@@ -114,3 +114,5 @@
     });
 </script>
 {% endblock %}
+
+<a href="{{ url_for('breathing_bp.index') }}">Breathing</a>
