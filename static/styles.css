@@ -66,6 +66,13 @@ body {
     display: flex;
     flex-wrap: wrap; /* Allow letters to wrap */
     justify-content: center;
+    gap: 8px;
+}
+
+.word-group {
+    white-space: nowrap;
+    display: inline-block;
+    margin-right: 4px;
 }
 
 .instructions {

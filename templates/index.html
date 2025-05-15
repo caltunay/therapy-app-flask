@@ -10,14 +10,21 @@
     </div>
 
     <div class="word-display" id="censored-word">
-        {% for i in range(tr_word|length) %}
-            {% if tr_word[i] == ' ' %}
-                <span class="space">&nbsp;&nbsp;</span>
-            {% elif censored[i] == '_' %}
-                <span class="letter" data-index="{{ i }}">_</span>
-            {% else %}
-                <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
-            {% endif %}
+        {% set words = tr_word.split() %}
+        {% set current_pos = 0 %}
+        
+        {% for word in words %}
+            <span class="word-group">
+                {% for i in range(word|length) %}
+                    {% set global_idx = current_pos + i %}
+                    {% if censored[global_idx] == '_' %}
+                        <span class="letter" data-index="{{ global_idx }}">_</span>
+                    {% else %}
+                        <span class="letter revealed" data-index="{{ global_idx }}">{{ censored[global_idx] }}</span>
+                    {% endif %}
+                {% endfor %}
+            </span>
+            {% set current_pos = current_pos + word|length + 1 %}
         {% endfor %}
     </div>
 
@@ -163,28 +170,38 @@
     // Helper function to update the censored word display
     function updateCensoredWord(censored) {
         const trWord = "{{ tr_word }}";
+        const words = trWord.split(' ');
         const container = document.getElementById('censored-word');
         container.innerHTML = '';
-        for (let i = 0; i < trWord.length; i++) {
-            if (trWord[i] === ' ') {
-                const span = document.createElement('span');
-                span.className = 'space';
-                span.innerHTML = '&nbsp;&nbsp;';
-                container.appendChild(span);
-            } else if (censored[i] === '_') {
+        
+        let currentPos = 0;
+        
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+            const word = words[wordIndex];
+            const wordGroup = document.createElement('span');
+            wordGroup.className = 'word-group';
+            
+            for (let i = 0; i < word.length; i++) {
+                const globalIdx = currentPos + i;
                 const span = document.createElement('span');
                 span.className = 'letter';
-                span.dataset.index = i;
-                span.textContent = '_';
-                span.addEventListener('click', letterClickHandler);
-                container.appendChild(span);
-            } else {
-                const span = document.createElement('span');
-                span.className = 'letter revealed';
-                span.dataset.index = i;
-                span.textContent = censored[i];
-                container.appendChild(span);
+                span.dataset.index = globalIdx;
+                
+                // Check if this letter is revealed in the censored text
+                if (globalIdx < censored.length && censored[globalIdx] !== '_') {
+                    span.classList.add('revealed');
+                    span.textContent = censored[globalIdx];
+                } else {
+                    span.textContent = '_';
+                    span.addEventListener('click', letterClickHandler);
+                }
+                
+                wordGroup.appendChild(span);
             }
+            
+            container.appendChild(wordGroup);
+            // Move position to after this word plus a space
+            currentPos += word.length + 1;
         }
         
         // Check if all letters are revealed

@@ -1,3 +1,5 @@
+# This file is now modularized. All logic has been moved to config.py, services.py, routes.py, __init__.py, and run.py.
+
 from flask import Flask, render_template, request, session, redirect, url_for, send_file, jsonify, Response
 import random
 import requests
@@ -36,7 +38,7 @@ def get_random_entry():
     }
 
     response = requests.get(
-        f"{SUPABASE_PROJECT_URL}/rest/v1/{SUPABASE_TABLE}?select=s3_key,eng_word,tr_word",
+        f"{SUPABASE_PROJECT_URL}/rest/v1/{SUPABASE_TABLE}?select=s3_key,eng_word,tr_word&is_confirmed=eq.true",
         headers=headers
     )
 
