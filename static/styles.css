@@ -430,6 +430,52 @@ footer a {
     text-decoration: underline;
 }
 
+/* Bosluk Doldurmaca Word Boxes */
+.word-boxes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.word-box {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 1.2em;
+    min-width: 40px;
+    text-align: center;
+    background: #f7f7f7;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.word-box:hover {
+    transform: translateY(-2px);
+    background-color: #f0f0f0;
+}
+
+/* Make sure the boxes work well on mobile */
+@media (max-width: 600px) {
+    .word-boxes-container {
+        gap: 8px;
+    }
+    
+    .word-box {
+        padding: 8px 12px;
+        font-size: 1em;
+        flex: 0 0 calc(50% - 8px); /* Take up roughly half the container width minus gap */
+    }
+}
+
+/* For very small screens */
+@media (max-width: 320px) {
+    .word-box {
+        flex: 0 0 calc(100% - 8px); /* Full width on very small screens */
+    }
+}
+
 @media (max-width: 600px) {
     .container {
         width: 95%;

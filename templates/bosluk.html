@@ -2,6 +2,77 @@
 
 {% block title %}Boşluk Doldurmaca{% endblock %}
 
+{% block head %}
+<style>
+    /* More compact UI for mobile */
+    h1 {
+        font-size: 1.5em !important;
+        margin: 5px 0 10px 0 !important;
+    }
+    
+    .sentence-container {
+        margin-bottom: 10px;
+    }
+    
+    .word-boxes-container {
+        margin: 10px 0 !important;
+    }
+    
+    #feedback-message {
+        margin: 8px 0 !important;
+    }
+    
+    .navigation-controls {
+        margin: 8px 0 !important;
+    }
+    
+    .section-divider {
+        margin: 1px auto !important;
+    }
+    
+    .speech-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .speech-controls audio {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 28px !important;
+        min-height: 0 !important;
+        display: none;
+    }
+    
+    .speech-controls audio[style*="display: block"] {
+        display: inline-block !important;
+    }
+
+    .pronounciation-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .pronounciation-controls audio {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 28px !important;
+        min-height: 0 !important;
+        display: none;
+    }
+    .pronounciation-controls audio[style*="display: block"] {
+        display: inline-block !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
     <h1>Boşluk Doldurmaca</h1>
     <div class="difficulty-slider-container" style="margin-bottom: 20px; text-align:center;">
@@ -16,9 +87,9 @@
     </div>
     <input type="hidden" id="original-sentence" value="{{ original_sentence }}">
     {% if word_boxes %}
-    <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0;">
+    <div class="word-boxes-container">
         {% for word in word_boxes %}
-            <div class="word-box" style="border:1px solid #ccc; border-radius:6px; padding:10px 18px; font-size:1.2em; min-width:40px; text-align:center; background:#f7f7f7; cursor:pointer;" data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
+            <div class="word-box" data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
                 {% if difficulty == 'zor' %}
                     {{ word }}
                 {% else %}

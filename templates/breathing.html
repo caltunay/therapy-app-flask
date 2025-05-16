@@ -9,15 +9,17 @@
         <div class="breathing-controls">
             <form id="breathing-form" action="{{ url_for('breathing_bp.index') }}" method="get">
                 <div class="control-group">
-                    <label for="breath-duration">Nefes alma/verme süresi (saniye):</label>
+                    <label for="breath-duration">
+                        Nefes alma/verme süresi: <b id="breath-duration-value">{{ breath_duration }}</b> saniye
+                    </label>
                     <input type="range" min="1" max="10" value="{{ breath_duration }}" class="breathing-slider" id="breath-duration" name="breath_duration">
-                    <span id="breath-duration-value">{{ breath_duration }}</span>
                 </div>
-                
+
                 <div class="control-group">
-                    <label for="hold-duration">Nefesi tutma süresi (saniye):</label>
+                    <label for="hold-duration">
+                        Nefesi tutma süresi: <b id="hold-duration-value">{{ hold_duration }}</b> saniye
+                    </label>
                     <input type="range" min="1" max="10" value="{{ hold_duration }}" class="breathing-slider" id="hold-duration" name="hold_duration">
-                    <span id="hold-duration-value">{{ hold_duration }}</span>
                 </div>
             </form>
         </div>
@@ -51,7 +53,7 @@
         breathDurationSlider.addEventListener('input', function() {
             breathDurationValue.textContent = this.value;
         });
-        
+
         holdDurationSlider.addEventListener('input', function() {
             holdDurationValue.textContent = this.value;
         });
