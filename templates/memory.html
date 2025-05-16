@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+
+{% block title %}Hafıza Çalışması{% endblock %}
+
+{% block head %}
+<style>
+    .memory-container, .choices-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .memory-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100px;
+        height: 100px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 2em;
+        font-weight: bold;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        cursor: pointer;
+    }
+    
+    .memory-box.correct { background-color: #4CAF50; }
+    .memory-box.incorrect { background-color: #F44336; }
+    .memory-box.revealed { /* Style for boxes in the top row once revealed */
+        cursor: default;
+    }
+    
+    .countdown {
+        font-size: 2em;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    .difficulty-selector {
+        text-align: center;
+        margin: 20px 0;
+    }
+    .difficulty-selector button {
+        padding: 10px 15px;
+        margin: 0 5px;
+        font-size: 1em;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+    }
+    .difficulty-selector button.active {
+        background-color: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    @media (max-width: 600px) {
+        .memory-box {
+            width: 80px;
+            height: 80px;
+            font-size: 1.8em;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1>Hafıza Çalışması</h1>
+
+    <div class="difficulty-selector">
+        <span>Zorluk Seviyesi: </span>
+        {% for diff_level in difficulties %}
+            <button
+                class="difficulty-btn {{ 'active' if diff_level == current_difficulty else '' }}"
+                data-url="{{ url_for('memory_bp.index', difficulty=diff_level) }}">
+                {{ diff_level }}
+            </button>
+        {% endfor %}
+    </div>
+
+    {% if game_state == 'setup' %}
+        <div class="countdown" id="countdown">{{ countdown }}</div>
+
+        <div class="memory-container">
+            {% for number in box_numbers %}
+                <div class="memory-box">{{ number }}</div>
+            {% endfor %}
+        </div>
+
+    {% elif game_state == 'play' %}
+        <div class="memory-container">
+            {# Assign IDs to target boxes for revealing numbers #}
+            {% for i in range(box_numbers|length) %}
+                <div class="memory-box" id="target-box-{{ i }}">?</div>
+            {% endfor %}
+        </div>
+
+        <div class="choices-container">
+            {% for number in choice_numbers %}
+                <div class="memory-box choice" data-number="{{ number }}">{{ number }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="navigation-controls">
+        <button id="refresh-btn" class="next-btn">Yeni Sayılar</button>
+    </div>
+
+    <div id="feedback" style="text-align:center; margin:15px 0; font-weight:bold;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize JavaScript constants with values from Jinja
+    const SCRIPT_GAME_STATE = "{{ game_state }}";
+    const SCRIPT_COUNTDOWN = "{{ countdown if countdown is defined else '0' }}";
+    const SCRIPT_URL_PLAY = "{{ url_for('memory_bp.play') }}";
+    const SCRIPT_URL_CHECK = "{{ url_for('memory_bp.check') }}";
+    const SCRIPT_URL_INDEX = "{{ url_for('memory_bp.index', difficulty=current_difficulty) }}";
+
+    // Store original numbers if in 'play' state
+    // Assign Jinja output to a string, then parse as JSON
+    const SCRIPT_ORIGINAL_NUMBERS_JSON_STRING = '{{ (box_numbers if game_state == "play" else []) | default([], true) | tojson | safe }}';
+    const SCRIPT_ORIGINAL_NUMBERS = JSON.parse(SCRIPT_ORIGINAL_NUMBERS_JSON_STRING);
+    
+    let revealedStates = []; // Tracks which original number slots have been filled
+
+    function navigateTo(url) {
+        window.location.href = url;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup for difficulty buttons
+        document.querySelectorAll('.difficulty-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                navigateTo(this.dataset.url);
+            });
+        });
+
+        const countdownElement = document.getElementById('countdown'); 
+        const feedback = document.getElementById('feedback');
+
+        if (SCRIPT_GAME_STATE === 'setup') {
+            let timer = parseInt(SCRIPT_COUNTDOWN, 10);
+            if (countdownElement) {
+                const interval = setInterval(() => {
+                    countdownElement.textContent = --timer;
+                    if (timer <= 0) {
+                        clearInterval(interval);
+                        window.location.href = SCRIPT_URL_PLAY;
+                    }
+                }, 1000);
+            }
+        }
+
+        if (SCRIPT_GAME_STATE === 'play') {
+            // Initialize revealedStates array based on the number of original items
+            if (SCRIPT_ORIGINAL_NUMBERS && SCRIPT_ORIGINAL_NUMBERS.length > 0) {
+                revealedStates = new Array(SCRIPT_ORIGINAL_NUMBERS.length).fill(false);
+            }
+
+            const choiceBoxes = document.querySelectorAll('.choice');
+            choiceBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    const number = this.dataset.number;
+
+                    fetch(SCRIPT_URL_CHECK, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'number=' + number
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.valid) {
+                            if (data.correct) {
+                                this.style.display = 'none'; // Hide the clicked choice box
+
+                                const clickedNumber = parseInt(this.dataset.number);
+                                // Find the first matching original number slot that hasn't been revealed
+                                for (let i = 0; i < SCRIPT_ORIGINAL_NUMBERS.length; i++) {
+                                    if (SCRIPT_ORIGINAL_NUMBERS[i] === clickedNumber && !revealedStates[i]) {
+                                        const targetBox = document.getElementById('target-box-' + i);
+                                        if (targetBox) {
+                                            targetBox.textContent = clickedNumber;
+                                            targetBox.classList.add('revealed'); // Add class for styling (e.g., cursor)
+                                        }
+                                        revealedStates[i] = true; // Mark this slot as revealed
+                                        break; // Stop after revealing one instance
+                                    }
+                                }
+
+                                if (data.allFound) {
+                                    if (feedback) {
+                                        feedback.textContent = 'Tebrikler! Tüm sayıları buldunuz.';
+                                        feedback.style.color = '#4CAF50';
+                                    }
+                                }
+                            } else {
+                                this.classList.add('incorrect');
+                            }
+                            this.onclick = null; // Prevent multiple clicks on this choice
+                        } else {
+                            console.error("Error from /check:", data.message);
+                            if (feedback) {
+                                feedback.textContent = data.message || 'Bir hata oluştu.';
+                                feedback.style.color = 'red';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                        if (feedback) {
+                            feedback.textContent = 'Sunucuyla iletişim kurulamadı.';
+                            feedback.style.color = 'red';
+                        }
+                    });
+                });
+            });
+        }
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            // Ensure refresh button respects current difficulty
+            refreshBtn.onclick = () => navigateTo(SCRIPT_URL_INDEX);
+        }
+    });
+</script>
+{% endblock %}
