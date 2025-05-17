@@ -70,7 +70,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Hafıza Çalışması</h1>
+    <h1>Sayıları Bul</h1>
 
     <div class="difficulty-selector">
         <span>Zorluk Seviyesi: </span>
@@ -84,6 +84,7 @@
     </div>
 
     {% if game_state == 'setup' %}
+    <h3>Geri Sayım: </h3>
         <div class="countdown" id="countdown">{{ countdown }}</div>
 
         <div class="memory-container">
@@ -93,6 +94,7 @@
         </div>
 
     {% elif game_state == 'play' %}
+    <h3>Sayıları Bul</h3>
         <div class="memory-container">
             {# Assign IDs to target boxes for revealing numbers #}
             {% for i in range(box_numbers|length) %}
@@ -108,7 +110,7 @@
     {% endif %}
 
     <div class="navigation-controls">
-        <button id="refresh-btn" class="next-btn">Yeni Sayılar</button>
+        <button id="refresh-btn" class="next-btn">Yeni Sayılar Getir</button>
     </div>
 
     <div id="feedback" style="text-align:center; margin:15px 0; font-weight:bold;"></div>
