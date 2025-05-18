@@ -18,7 +18,7 @@
         align-items: center;
         width: 100px;
         height: 100px;
-        background-color: #4CAF50;
+        background-color: #42A5F5; /* Updated to lighter blue */
         color: white;
         font-size: 2em;
         font-weight: bold;
@@ -27,7 +27,7 @@
         cursor: pointer;
     }
     
-    .memory-box.correct { background-color: #4CAF50; }
+    .memory-box.correct { background-color: #42A5F5; /* Updated to lighter blue */ }
     .memory-box.incorrect { background-color: #F44336; }
     .memory-box.revealed { /* Style for boxes in the top row once revealed */
         cursor: default;
@@ -40,23 +40,23 @@
         margin: 10px 0;
     }
 
-    .difficulty-selector {
+    .difficulty-slider-container {
         text-align: center;
         margin: 20px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px; /* Space between label, slider, and value display */
     }
-    .difficulty-selector button {
-        padding: 10px 15px;
-        margin: 0 5px;
-        font-size: 1em;
+
+    #difficulty-slider {
+        width: 200px; /* Adjust width as needed */
         cursor: pointer;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f0f0f0;
     }
-    .difficulty-selector button.active {
-        background-color: #4CAF50;
-        color: white;
-        border-color: #4CAF50;
+
+    #selected-difficulty-label {
+        min-width: 60px; /* Ensure space for difficulty names */
+        text-align: left;
     }
     
     @media (max-width: 600px) {
@@ -66,21 +66,38 @@
             font-size: 1.8em;
         }
     }
+
+    .congrats-message {
+        background-color: #f0fff0;
+        border: 2px solid #4CAF50;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-top: 20px;
+        color: #4CAF50;
+        text-align: center;
+    }
+
+    #refresh-btn {
+        background-color: #4CAF50; /* Your desired background color */
+        border-color: #4CAF50; /* Adjust border if necessary */
+    }
 </style>
 {% endblock %}
 
 {% block content %}
     <h1>Sayıları Bul</h1>
 
-    <div class="difficulty-selector">
-        <span>Zorluk Seviyesi: </span>
-        {% for diff_level in difficulties %}
-            <button
-                class="difficulty-btn {{ 'active' if diff_level == current_difficulty else '' }}"
-                data-url="{{ url_for('memory_bp.index', difficulty=diff_level) }}">
-                {{ diff_level }}
-            </button>
-        {% endfor %}
+    <div class="difficulty-slider-container">
+        <!-- <span>Zorluk Seviyesi: </span> -->
+        <input type="range" 
+               id="difficulty-slider" 
+               min="0" 
+               max="{{ difficulties|length - 1 }}" 
+               value="{{ difficulties.index(current_difficulty) if current_difficulty in difficulties else 0 }}" 
+               step="1">
+        <span id="selected-difficulty-label">{{ current_difficulty }}</span>
     </div>
 
     {% if game_state == 'setup' %}
@@ -110,10 +127,10 @@
     {% endif %}
 
     <div class="navigation-controls">
-        <button id="refresh-btn" class="next-btn">Yeni Sayılar Getir</button>
+        <button id="refresh-btn" class="btn btn-success">Yeni Sayılar Getir</button>
     </div>
 
-    <div id="feedback" style="text-align:center; margin:15px 0; font-weight:bold;"></div>
+    <div id="feedback" class="feedback"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -123,7 +140,11 @@
     const SCRIPT_COUNTDOWN = "{{ countdown if countdown is defined else '0' }}";
     const SCRIPT_URL_PLAY = "{{ url_for('memory_bp.play') }}";
     const SCRIPT_URL_CHECK = "{{ url_for('memory_bp.check') }}";
-    const SCRIPT_URL_INDEX = "{{ url_for('memory_bp.index', difficulty=current_difficulty) }}";
+    const SCRIPT_URL_INDEX_BASE = "{{ url_for('memory_bp.index') }}"; // Base URL for index page (without difficulty)
+    const SCRIPT_URL_REFRESH = "{{ url_for('memory_bp.index', difficulty=current_difficulty) }}"; // URL for refreshing with current difficulty
+
+    // Fix: Ensure proper JSON formatting for SCRIPT_DIFFICULTIES
+    const SCRIPT_DIFFICULTIES = JSON.parse('{{ difficulties | tojson | safe }}');
 
     // Store original numbers if in 'play' state
     // Assign Jinja output to a string, then parse as JSON
@@ -137,12 +158,22 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Setup for difficulty buttons
-        document.querySelectorAll('.difficulty-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                navigateTo(this.dataset.url);
+        const difficultySlider = document.getElementById('difficulty-slider');
+        const selectedDifficultyLabel = document.getElementById('selected-difficulty-label');
+
+        if (difficultySlider && selectedDifficultyLabel) {
+            // Update label text dynamically as slider moves
+            difficultySlider.addEventListener('input', function() {
+                selectedDifficultyLabel.textContent = SCRIPT_DIFFICULTIES[parseInt(this.value, 10)];
             });
-        });
+
+            // Navigate when slider value is finalized (on release)
+            difficultySlider.addEventListener('change', function() {
+                const selectedIndex = parseInt(this.value, 10);
+                const selectedDifficultyName = SCRIPT_DIFFICULTIES[selectedIndex];
+                navigateTo(`${SCRIPT_URL_INDEX_BASE}?difficulty=${selectedDifficultyName}`);
+            });
+        }
 
         const countdownElement = document.getElementById('countdown'); 
         const feedback = document.getElementById('feedback');
@@ -180,6 +211,8 @@
                     })
                     .then(response => response.json())
                     .then(data => {
+                        console.log("Response from server:", data);
+                        
                         if (data.valid) {
                             if (data.correct) {
                                 this.style.display = 'none'; // Hide the clicked choice box
@@ -198,11 +231,25 @@
                                     }
                                 }
 
-                                if (data.allFound) {
-                                    if (feedback) {
-                                        feedback.textContent = 'Tebrikler! Tüm sayıları buldunuz.';
-                                        feedback.style.color = '#4CAF50';
-                                    }
+                                // Check if all numbers have been found directly in the client
+                                const allNumbersFound = revealedStates.every(state => state === true);
+                                console.log("Client check - All numbers found:", allNumbersFound);
+                                console.log("Server check - All numbers found:", data.allFound);
+                                console.log("Debug info from server:", data.debugInfo);
+                                
+                                // Use either our check or the server's response
+                                if (allNumbersFound || data.allFound) {
+                                    console.log("Condition met to show congratulations!");
+                                    
+                                    feedback.innerHTML = '';
+                                    let congratsDiv = document.createElement('div');
+                                    congratsDiv.className = 'congrats-message';
+                                    congratsDiv.textContent = 'Tebrikler! Tüm sayıları buldunuz.';
+                                    feedback.appendChild(congratsDiv);
+
+                                    choiceBoxes.forEach(box => {
+                                        box.style.pointerEvents = 'none';
+                                    });
                                 }
                             } else {
                                 this.classList.add('incorrect');
@@ -229,8 +276,8 @@
 
         const refreshBtn = document.getElementById('refresh-btn');
         if (refreshBtn) {
-            // Ensure refresh button respects current difficulty
-            refreshBtn.onclick = () => navigateTo(SCRIPT_URL_INDEX);
+            // Ensure refresh button respects current difficulty by navigating to the index page with current difficulty
+            refreshBtn.onclick = () => navigateTo(SCRIPT_URL_REFRESH);
         }
     });
 </script>
