@@ -78,18 +78,36 @@ def check():
     original_numbers = session['original_numbers']
     
     is_correct = selected_number in original_numbers
-    all_found = False
     
-    # Track found numbers
+    # Initialize found_numbers if not present
     if 'found_numbers' not in session:
         session['found_numbers'] = []
     
-    if is_correct and selected_number not in session['found_numbers']:
-        session['found_numbers'].append(selected_number)
-        all_found = set(session['found_numbers']) == set(original_numbers)
+    # Make a copy to avoid modification issues with session objects
+    found_numbers = session['found_numbers'].copy()
+    
+    if is_correct and selected_number not in found_numbers:
+        found_numbers.append(selected_number)
+        session['found_numbers'] = found_numbers
+        # Force the session to update
+        session.modified = True
+    
+    # Debug output for troubleshooting
+    print(f"Debug - Selected: {selected_number}, Is Correct: {is_correct}")
+    print(f"Debug - Found Numbers: {session['found_numbers']}")
+    print(f"Debug - Original Numbers: {original_numbers}")
+    
+    # Check if all numbers have been found
+    all_found = set(session['found_numbers']) == set(original_numbers)
+    print(f"Debug - All Found: {all_found}")
     
     return jsonify({
         'valid': True,
         'correct': is_correct,
-        'allFound': all_found
+        'allFound': all_found,
+        'debugInfo': {
+            'found': session['found_numbers'],
+            'original': original_numbers,
+            'allFound': all_found
+        }
     })
