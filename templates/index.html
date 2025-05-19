@@ -17,14 +17,20 @@
             <span class="word-group">
                 {% for i in range(word|length) %}
                     {% set global_idx = current_pos + i %}
-                    {% if censored[global_idx] == '_' %}
-                        <span class="letter" data-index="{{ global_idx }}">_</span>
-                    {% else %}
-                        <span class="letter revealed" data-index="{{ global_idx }}">{{ censored[global_idx] }}</span>
+                    {% if global_idx < censored|length %}
+                        {% if censored[global_idx] == '_' %}
+                            <span class="letter" data-index="{{ global_idx }}">_</span>
+                        {% else %}
+                            <span class="letter revealed" data-index="{{ global_idx }}">{{ censored[global_idx] }}</span>
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
             </span>
-            {% set current_pos = current_pos + word|length + 1 %}
+            {% if not loop.last %}
+                {% set current_pos = current_pos + word|length + 1 %}
+            {% else %}
+                {% set current_pos = current_pos + word|length %}
+            {% endif %}
         {% endfor %}
     </div>
 
@@ -85,7 +91,7 @@
     // Pronunciation button functionality
     pronounceBtn.addEventListener('click', function() {
         fetch('/pronounce')
-            .then(response => response.blob())
+            .then(response => response.blob())  
             .then(blob => {
                 const url = URL.createObjectURL(blob);
                 audioPronounce.src = url;
@@ -200,8 +206,12 @@
             }
             
             container.appendChild(wordGroup);
-            // Move position to after this word plus a space
-            currentPos += word.length + 1;
+            // Only add the space position if this isn't the last word
+            if (wordIndex < words.length - 1) {
+                currentPos += word.length + 1;
+            } else {
+                currentPos += word.length;
+            }
         }
         
         // Check if all letters are revealed

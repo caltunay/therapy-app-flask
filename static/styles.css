@@ -456,6 +456,132 @@ footer a {
     background-color: #f0f0f0;
 }
 
+/* Bosluk Doldurmaca Specific Styles */
+.sentence-container {
+    margin-bottom: 10px;
+}
+
+#feedback-message {
+    text-align: center;
+    margin: 15px 0;
+    font-weight: bold;
+    min-height: 24px;
+}
+
+.difficulty-slider-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.pronounciation-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+}
+
+.pronounciation-controls audio {
+    margin: 0;
+    padding: 0;
+    height: 28px;
+    min-height: 0;
+    display: none;
+}
+
+.pronounciation-controls audio[style*="display: block"] {
+    display: inline-block !important;
+}
+
+/* Word Display from Layout */
+.word-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.word-group {
+    display: inline-flex;
+    margin-right: 0;
+}
+
+.letter {
+    display: inline-block;
+    width: 1.5em;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0 2px;
+    color: #333; 
+}
+
+/* Memory Game Styles */
+.memory-container, .choices-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.memory-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 100px;
+    background-color: #42A5F5;
+    color: white;
+    font-size: 2em;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+.memory-box.correct { 
+    background-color: #42A5F5;
+}
+
+.memory-box.incorrect { 
+    background-color: #F44336;
+}
+
+.memory-box.revealed {
+    cursor: default;
+}
+
+.countdown {
+    font-size: 2em;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+}
+
+#selected-difficulty-label {
+    min-width: 60px;
+    text-align: left;
+}
+
+.congrats-message {
+    background-color: #f0fff0;
+    border: 2px solid #4CAF50;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #4CAF50;
+    text-align: center;
+}
+
+#refresh-btn {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
 /* Make sure the boxes work well on mobile */
 @media (max-width: 600px) {
     .word-boxes-container {
@@ -467,9 +593,83 @@ footer a {
         font-size: 1em;
         flex: 0 0 calc(50% - 8px); /* Take up roughly half the container width minus gap */
     }
+    
+    .memory-box {
+        width: 80px;
+        height: 80px;
+        font-size: 1.8em;
+    }
+    
+    /* More compact UI for Bosluk page on mobile */
+    h1 {
+        font-size: 1.5em !important;
+        margin: 5px 0 10px 0 !important;
+    }
+    
+    .sentence-container {
+        margin-bottom: 10px;
+    }
+    
+    .word-boxes-container {
+        margin: 10px 0 !important;
+    }
+    
+    #feedback-message {
+        margin: 8px 0 !important;
+    }
+    
+    .navigation-controls {
+        margin: 8px 0 !important;
+    }
+    
+    .section-divider {
+        margin: 1px auto !important;
+    }
+    
+    .speech-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .speech-controls audio {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 28px !important;
+        min-height: 0 !important;
+        display: none;
+    }
+    
+    .speech-controls audio[style*="display: block"] {
+        display: inline-block !important;
+    }
+
+    .pronounciation-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .pronounciation-controls audio {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 28px !important;
+        min-height: 0 !important;
+        display: none;
+    }
+    
+    .pronounciation-controls audio[style*="display: block"] {
+        display: inline-block !important;
+    }
 }
 
-/* For very small screens */
 @media (max-width: 320px) {
     .word-box {
         flex: 0 0 calc(100% - 8px); /* Full width on very small screens */

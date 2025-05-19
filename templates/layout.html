@@ -6,29 +6,6 @@
     <title>{% block title %}Terapi Uygulaması{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     {% block head %}{% endblock %}
-    <style>
-        .word-display {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .word-group {
-            display: inline-flex;
-            margin-right: 0;
-        }
-        
-        .letter {
-            display: inline-block;
-            width: 1.5em;
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin: 0 2px;
-            color: #333; 
-        }
-    </style>
 </head>
 <body>
     <div class="nav-menu">
