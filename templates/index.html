@@ -189,12 +189,19 @@
             
             for (let i = 0; i < word.length; i++) {
                 const globalIdx = currentPos + i;
+                
+                // Skip if index is beyond censored string length
+                if (globalIdx >= censored.length) {
+                    console.log(`Warning: Index ${globalIdx} is beyond censored string length (${censored.length})`);
+                    continue;
+                }
+                
                 const span = document.createElement('span');
                 span.className = 'letter';
                 span.dataset.index = globalIdx;
                 
                 // Check if this letter is revealed in the censored text
-                if (globalIdx < censored.length && censored[globalIdx] !== '_') {
+                if (censored[globalIdx] !== '_') {
                     span.classList.add('revealed');
                     span.textContent = censored[globalIdx];
                 } else {
@@ -206,6 +213,7 @@
             }
             
             container.appendChild(wordGroup);
+            
             // Only add the space position if this isn't the last word
             if (wordIndex < words.length - 1) {
                 currentPos += word.length + 1;
