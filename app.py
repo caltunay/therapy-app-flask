@@ -16,7 +16,7 @@ load_dotenv()
 
 # start app
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'dev')  
+app.secret_key = os.getenv('SESSION_SECRET_KEY')
 
 # Register the breathing blueprint
 app.register_blueprint(breathing_bp)

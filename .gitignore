@@ -12,6 +12,7 @@ __pycache__/
 
 # Notebook checkpoints
 .ipynb_checkpoints
+*.ipynb
 
 # IDE-specific metadata (examples, add others if you use different IDEs)
 .idea/
