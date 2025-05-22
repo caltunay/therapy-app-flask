@@ -283,11 +283,16 @@ button:disabled {
 
 .letter {
     display: inline-block;
-    width: 1.1em; /* Slightly reduced from 1.2em */
+    width: 1.5em;
     text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0 2px;
+    color: #333; 
+    min-width: 1em;
     border-bottom: 2px solid #333;
-    margin: 0 3px 5px 3px; /* Added bottom margin and reduced side margins */
-    cursor: pointer;
+    box-sizing: content-box;
+    font-family: 'Courier New', monospace;
 }
 
 .letter.revealed {
@@ -515,6 +520,11 @@ footer a {
     font-weight: bold;
     margin: 0 2px;
     color: #333; 
+    min-width: 1em;
+    border-bottom: 2px solid #333;
+    box-sizing: content-box;
+    border-bottom: none;
+    font-family: 'Courier New', monospace;
 }
 
 /* Memory Game Styles */
