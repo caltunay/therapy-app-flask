@@ -10,14 +10,20 @@
     </div>
 
     <div class="word-display" id="censored-word">
-        {% for i in range(tr_word|length) %}
-            {% if tr_word[i] == ' ' %}
-                <span class="letter space" data-index="{{ i }}">&nbsp;</span>
-            {% elif censored[i] == '_' %}
-                <span class="letter" data-index="{{ i }}">_</span>
-            {% else %}
-                <span class="letter revealed" data-index="{{ i }}">{{ censored[i] }}</span>
-            {% endif %}
+        {% set global_index = 0 %} <!-- Initialize a global index -->
+        {% for word in tr_word.split(' ') %}
+            <span class="word-group">
+                {% for char in word %}
+                    {% if censored[global_index] == '_' %}
+                        <span class="letter" data-index="{{ global_index }}">_</span>
+                    {% else %}
+                        <span class="letter revealed" data-index="{{ global_index }}">{{ censored[global_index] }}</span>
+                    {% endif %}
+                    {% set global_index = global_index + 1 %} <!-- Increment the global index -->
+                {% endfor %}
+            </span>
+            <span class="space">&nbsp;</span>
+            {% set global_index = global_index + 1 %} <!-- Account for the space in the censored string -->
         {% endfor %}
     </div>
 

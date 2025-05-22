@@ -75,9 +75,9 @@ body {
 }
 
 .word-group {
-    white-space: nowrap;
-    display: inline-block;
-    margin-right: 4px;
+    display: inline-flex; /* Treat the word as a single unit */
+    white-space: nowrap; /* Prevent breaking inside the word */
+    margin-right: 4px; /* Add spacing between words */
 }
 
 .instructions {
@@ -302,10 +302,9 @@ button:disabled {
 }
 
 .space {
-    display: inline-block;
-    width: 1.2em;
-    height: 1.2em;
-    margin: 0 5px;
+    display: inline-block; /* Preserve spacing */
+    width: 1em; /* Match the width of a character */
+    height: 1em; /* Match the height of a character */
 }
 
 #message-area {
@@ -508,8 +507,9 @@ footer a {
 }
 
 .word-group {
-    display: inline-flex;
-    margin-right: 0;
+    display: inline-flex; /* Treat the word as a single unit */
+    white-space: nowrap; /* Prevent breaking inside the word */
+    margin-right: 4px; /* Add spacing between words */
 }
 
 .letter {

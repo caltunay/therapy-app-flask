@@ -57,41 +57,6 @@ def index():
 
     return render_template('index.html', image_url=image_url, censored=censored, revealed=len(session['revealed_indices']), tr_word=tr_word)
 
-# @app.route('/', methods=['GET'])
-# def index():
-#     item = get_random_entry()
-#     if not item:
-#         return "No data found"
-#     s3_key = item.get('s3_key', '')
-#     image_url = get_image_url(s3_key)
-#     tr_word = item.get('tr_word', '')
-
-#     # If session already has tr_word and image_url, use them
-#     if session.get('tr_word') == tr_word and session.get('image_url') == image_url:
-#         censored = session.get('censored', '_' * len(tr_word))
-#         revealed_indices = session.get('revealed_indices', [])
-#     else:
-#         session['tr_word'] = tr_word
-#         session['image_url'] = image_url
-#         revealed_indices = []  # Initialize before use
-#         session['revealed_indices'] = revealed_indices
-        
-#         # Build censored string, keeping spaces as spaces
-#         censored = ''
-#         for i in range(len(tr_word)):
-#             if i in revealed_indices or tr_word[i] == ' ':
-#                 censored += tr_word[i]
-#             else:
-#                 censored += '_'
-        
-#         session['censored'] = censored
-
-#     print(f"tr_word: '{tr_word}', length: {len(tr_word)}")
-#     print(f"censored: '{censored}', length: {len(censored)}")
-#     print("Revealed indices at start of new word:", session.get('revealed_indices'))
-    
-#     return render_template('index.html', image_url=image_url, censored=censored, revealed=len(revealed_indices), tr_word=tr_word)
-
 @app.route('/hint', methods=['POST'])
 def hint():
     tr_word = session.get('tr_word', '')
