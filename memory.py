@@ -93,9 +93,9 @@ def check():
         session.modified = True
     
     # Debug output for troubleshooting
-    print(f"Debug - Selected: {selected_number}, Is Correct: {is_correct}")
-    print(f"Debug - Found Numbers: {session['found_numbers']}")
-    print(f"Debug - Original Numbers: {original_numbers}")
+    # print(f"Debug - Selected: {selected_number}, Is Correct: {is_correct}")
+    # print(f"Debug - Found Numbers: {session['found_numbers']}")
+    # print(f"Debug - Original Numbers: {original_numbers}")
     
     # Check if all numbers have been found
     all_found = set(session['found_numbers']) == set(original_numbers)
