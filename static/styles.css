@@ -592,6 +592,93 @@ footer a {
     border-color: #4CAF50;
 }
 
+/* Image Memory Game Styles */
+.image-memory-container, .choices-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.image-memory-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    height: 180px;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.image-memory-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.image-memory-box.target-box {
+    background-color: #e3f2fd;
+    border-color: #42A5F5;
+    cursor: default;
+}
+
+.image-memory-box.target-box:hover {
+    transform: none;
+}
+
+.image-memory-box.revealed {
+    background-color: #e8f5e8;
+    border-color: #4CAF50;
+    cursor: default;
+}
+
+.image-memory-box.choice.incorrect {
+    background-color: #ffebee;
+    border-color: #f44336;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.memory-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.image-word {
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+    margin-top: 5px;
+    word-wrap: break-word;
+    max-width: 100%;
+}
+
+.question-mark {
+    font-size: 4em;
+    color: #42A5F5;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
 /* Make sure the boxes work well on mobile */
 @media (max-width: 600px) {
     .word-boxes-container {
@@ -608,6 +695,29 @@ footer a {
         width: 80px;
         height: 80px;
         font-size: 1.8em;
+    }
+    
+    .image-memory-box {
+        width: 120px;
+        height: 150px;
+        padding: 8px;
+    }
+    
+    .memory-image {
+        height: 90px;
+    }
+    
+    .image-word {
+        font-size: 0.8em;
+    }
+    
+    .question-mark {
+        font-size: 3em;
+    }
+    
+    .image-memory-container, .choices-container {
+        gap: 10px;
+        margin: 15px 0;
     }
     
     /* More compact UI for Bosluk page on mobile */

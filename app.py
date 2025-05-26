@@ -9,6 +9,7 @@ from io import BytesIO
 from breathing import breathing_bp
 from bosluk import bosluk_bp
 from memory import memory_bp
+from image_memory import image_memory_bp
 from data_services import get_random_entry, get_image_url
 
 # load env variables
@@ -22,6 +23,7 @@ app.secret_key = os.getenv('SESSION_SECRET_KEY')
 app.register_blueprint(breathing_bp)
 app.register_blueprint(bosluk_bp)
 app.register_blueprint(memory_bp)
+app.register_blueprint(image_memory_bp)
 
 @app.route('/', methods=['GET'])
 def index():

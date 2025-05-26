@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+
+{% block title %}Resim Hafıza Çalışması{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+    <h1>Resimleri Bul</h1>
+
+    <div class="difficulty-slider-container">
+        <input type="range" 
+               id="difficulty-slider" 
+               min="0" 
+               max="{{ difficulties|length - 1 }}" 
+               value="{{ difficulties.index(current_difficulty) if current_difficulty in difficulties else 0 }}" 
+               step="1">
+        <span id="selected-difficulty-label">{{ current_difficulty }}</span>
+    </div>
+
+    {% if game_state == 'setup' %}
+    <h3>Geri Sayım: </h3>
+        <div class="countdown" id="countdown">{{ countdown }}</div>
+
+        <div class="image-memory-container">
+            {% for image in images %}
+                <div class="image-memory-box">
+                    <img src="{{ image.image_url }}" alt="{{ image.tr_word }}" class="memory-image">
+                    <div class="image-word">{{ image.tr_word }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% elif game_state == 'play' %}
+    <h3>Resimleri Bul</h3>
+        <div class="image-memory-container">
+            {# Show placeholder boxes for target images #}
+            {% for i in range(images|length) %}
+                <div class="image-memory-box target-box" id="target-box-{{ i }}">
+                    <div class="question-mark">?</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="choices-container">
+            {% for image in choice_images %}
+                <div class="image-memory-box choice" data-s3-key="{{ image.s3_key }}" data-tr-word="{{ image.tr_word }}" data-image-url="{{ image.image_url }}">
+                    <img src="{{ image.image_url }}" alt="{{ image.tr_word }}" class="memory-image">
+                    <div class="image-word">{{ image.tr_word }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="navigation-controls">
+        <button id="refresh-btn" class="btn btn-success">Yeni Resimler Getir</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize JavaScript constants with values from Jinja
+    const SCRIPT_GAME_STATE = "{{ game_state }}";
+    const SCRIPT_COUNTDOWN = "{{ countdown if countdown is defined else '0' }}";
+    const SCRIPT_URL_PLAY = "{{ url_for('image_memory_bp.play') }}";
+    const SCRIPT_URL_CHECK = "{{ url_for('image_memory_bp.check') }}";
+    const SCRIPT_URL_INDEX_BASE = "{{ url_for('image_memory_bp.index') }}";
+    const SCRIPT_URL_REFRESH = "{{ url_for('image_memory_bp.index', difficulty=current_difficulty) }}";
+
+    const SCRIPT_DIFFICULTIES = JSON.parse('{{ difficulties | tojson | safe }}');
+
+    // Store original images if in 'play' state
+    const SCRIPT_ORIGINAL_IMAGES_JSON_STRING = '{{ (images if game_state == "play" else []) | default([], true) | tojson | safe }}';
+    const SCRIPT_ORIGINAL_IMAGES = JSON.parse(SCRIPT_ORIGINAL_IMAGES_JSON_STRING);
+    
+    let revealedStates = []; // Tracks which original image slots have been filled
+
+    function navigateTo(url) {
+        window.location.href = url;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const difficultySlider = document.getElementById('difficulty-slider');
+        const selectedDifficultyLabel = document.getElementById('selected-difficulty-label');
+
+        if (difficultySlider && selectedDifficultyLabel) {
+            // Update label text dynamically as slider moves
+            difficultySlider.addEventListener('input', function() {
+                selectedDifficultyLabel.textContent = SCRIPT_DIFFICULTIES[parseInt(this.value, 10)];
+            });
+
+            // Navigate when slider value is finalized (on release)
+            difficultySlider.addEventListener('change', function() {
+                const selectedIndex = parseInt(this.value, 10);
+                const selectedDifficultyName = SCRIPT_DIFFICULTIES[selectedIndex];
+                navigateTo(`${SCRIPT_URL_INDEX_BASE}?difficulty=${selectedDifficultyName}`);
+            });
+        }
+
+        const countdownElement = document.getElementById('countdown'); 
+        const feedback = document.getElementById('feedback');
+
+        if (SCRIPT_GAME_STATE === 'setup') {
+            let timer = parseInt(SCRIPT_COUNTDOWN, 10);
+            if (countdownElement) {
+                const interval = setInterval(() => {
+                    countdownElement.textContent = --timer;
+                    if (timer <= 0) {
+                        clearInterval(interval);
+                        window.location.href = SCRIPT_URL_PLAY;
+                    }
+                }, 1000);
+            }
+        }
+
+        if (SCRIPT_GAME_STATE === 'play') {
+            // Initialize revealedStates array based on the number of original items
+            if (SCRIPT_ORIGINAL_IMAGES && SCRIPT_ORIGINAL_IMAGES.length > 0) {
+                revealedStates = new Array(SCRIPT_ORIGINAL_IMAGES.length).fill(false);
+            }
+
+            const choiceBoxes = document.querySelectorAll('.choice');
+            choiceBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    const s3Key = this.dataset.s3Key;
+                    const trWord = this.dataset.trWord;
+                    const imageUrl = this.dataset.imageUrl;
+
+                    fetch(SCRIPT_URL_CHECK, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 's3_key=' + encodeURIComponent(s3Key)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Response from server:", data);
+                        
+                        if (data.valid) {
+                            if (data.correct) {
+                                this.style.display = 'none'; // Hide the clicked choice box
+
+                                // Find the first unrevealed target box slot
+                                for (let i = 0; i < SCRIPT_ORIGINAL_IMAGES.length; i++) {
+                                    if (SCRIPT_ORIGINAL_IMAGES[i].s3_key === s3Key && !revealedStates[i]) {
+                                        const targetBox = document.getElementById('target-box-' + i);
+                                        if (targetBox) {
+                                            // Replace the question mark with the actual image and word
+                                            targetBox.innerHTML = `
+                                                <img src="${imageUrl}" alt="${trWord}" class="memory-image">
+                                                <div class="image-word">${trWord}</div>
+                                            `;
+                                            targetBox.classList.add('revealed');
+                                        }
+                                        revealedStates[i] = true; // Mark this slot as revealed
+                                        break; // Stop after revealing one instance
+                                    }
+                                }
+
+                                // Check if all images have been found
+                                const allImagesFound = revealedStates.every(state => state === true);
+                                console.log("Client check - All images found:", allImagesFound);
+                                console.log("Server check - All images found:", data.allFound);
+                                console.log("Debug info from server:", data.debugInfo);
+                                
+                                // Use either our check or the server's response
+                                if (allImagesFound || data.allFound) {
+                                    console.log("Condition met to show congratulations!");
+                                    
+                                    feedback.innerHTML = '';
+                                    let congratsDiv = document.createElement('div');
+                                    congratsDiv.className = 'congrats-message';
+                                    congratsDiv.textContent = 'Tebrikler! Tüm resimleri buldunuz.';
+                                    feedback.appendChild(congratsDiv);
+
+                                    choiceBoxes.forEach(box => {
+                                        box.style.pointerEvents = 'none';
+                                    });
+                                }
+                            } else {
+                                this.classList.add('incorrect');
+                                // Add a brief visual feedback for incorrect choice
+                                setTimeout(() => {
+                                    this.classList.remove('incorrect');
+                                }, 1000);
+                            }
+                            this.onclick = null; // Prevent multiple clicks on this choice
+                        } else {
+                            console.error("Error from /check:", data.message);
+                            if (feedback) {
+                                feedback.textContent = data.message || 'Bir hata oluştu.';
+                                feedback.style.color = 'red';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                        if (feedback) {
+                            feedback.textContent = 'Sunucuyla iletişim kurulamadı.';
+                            feedback.style.color = 'red';
+                        }
+                    });
+                });
+            });
+        }
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.onclick = () => navigateTo(SCRIPT_URL_REFRESH);
+        }
+    });
+</script>
+{% endblock %}
