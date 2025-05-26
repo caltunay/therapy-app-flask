@@ -4,48 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Terapi Uygulaması{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     {% block head %}{% endblock %}
 </head>
-<body>
-    <!-- Hamburger menu button for mobile -->
-    <button class="nav-toggle" aria-label="Menüyü Aç/Kapat" onclick="document.querySelector('.nav-menu').classList.toggle('open')">
-        <span class="nav-toggle-label">Oyun Seç</span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    </button>
-    <div class="nav-menu">
-        <a href="{{ url_for('breathing_bp.index') }}" class="nav-item {% if request.path == url_for('breathing_bp.index') %}active{% endif %}">Nefes Çalışması</a>
-        <a href="{{ url_for('index') }}" class="nav-item {% if request.path == url_for('index') %}active{% endif %}">Kelime Çalışması</a>
-        <a href="{{ url_for('bosluk_bp.index') }}" class="nav-item {% if request.path == url_for('bosluk_bp.index') %}active{% endif %}">Boşluk Doldurmaca</a>
-        <a href="{{ url_for('memory_bp.index') }}" class="nav-item {% if request.path == url_for('memory_bp.index') %}active{% endif %}">Hafıza Çalışması</a>
-        <a href="{{ url_for('image_memory_bp.index') }}" class="nav-item {% if request.path == url_for('image_memory_bp.index') %}active{% endif %}">Resim Hafızası</a>
-    </div>
+<body class="bg-light">
+    <!-- Modern Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+                <i class="bi bi-heart-pulse me-2"></i>Terapi Uygulaması
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('breathing_bp.index') %}active{% endif %}" 
+                           href="{{ url_for('breathing_bp.index') }}">
+                            <i class="bi bi-wind me-1"></i>Nefes Çalışması
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('index') %}active{% endif %}" 
+                           href="{{ url_for('index') }}">
+                            <i class="bi bi-card-image me-1"></i>Kelime Çalışması
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('bosluk_bp.index') %}active{% endif %}" 
+                           href="{{ url_for('bosluk_bp.index') }}">
+                            <i class="bi bi-pencil-square me-1"></i>Boşluk Doldurmaca
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('memory_bp.index') %}active{% endif %}" 
+                           href="{{ url_for('memory_bp.index') }}">
+                            <i class="bi bi-grid-3x3-gap me-1"></i>Hafıza Çalışması
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('image_memory_bp.index') %}active{% endif %}" 
+                           href="{{ url_for('image_memory_bp.index') }}">
+                            <i class="bi bi-images me-1"></i>Resim Hafızası
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
+    <main class="py-4">
+        <div class="container fade-in-up">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
 
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     {% block scripts %}{% endblock %}
-    <script>
-    // Hide menu when clicking outside (optional UX improvement)
-    document.addEventListener('click', function(e) {
-        const navMenu = document.querySelector('.nav-menu');
-        const navToggle = document.querySelector('.nav-toggle');
-        if (navMenu && navToggle && navMenu.classList.contains('open')) {
-            if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
-                navMenu.classList.remove('open');
-            }
-        }
-    });
-    </script>
-    <footer>
-        <p>
-            projeye yardim etmek icin: <a href="https://github.com/caltunay/therapy-app-data-generator" target="_blank">github</a> 
-            | <a href="https://www.linkedin.com/in/cenan-altunay/" target="_blank">linkedin</a> 
-            | <a href="mailto:cenan.altunay@gmail.com">cenan.altunay@gmail.com</a>.
-        </p>
+    
+    <!-- Modern Footer -->
+    <footer class="bg-dark text-light py-3 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">
+                <small>
+                    Projeye yardım etmek için: 
+                    <a href="https://github.com/caltunay/therapy-app-data-generator" target="_blank" class="text-info text-decoration-none">
+                        <i class="bi bi-github me-1"></i>GitHub
+                    </a> 
+                    | <a href="https://www.linkedin.com/in/cenan-altunay/" target="_blank" class="text-info text-decoration-none">
+                        <i class="bi bi-linkedin me-1"></i>LinkedIn
+                    </a> 
+                    | <a href="mailto:cenan.altunay@gmail.com" class="text-info text-decoration-none">
+                        <i class="bi bi-envelope me-1"></i>E-posta
+                    </a>
+                </small>
+            </p>
+        </div>
     </footer>
 </body>
 </html>

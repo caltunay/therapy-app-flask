@@ -3,54 +3,103 @@
 {% block title %}Kelime Çalışması{% endblock %}
 
 {% block content %}
-    <h1>Kelimeyi Tahmin Et</h1>
-    
-    <div class="image-container">
-        <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" class="main-image">
-    </div>
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center bg-primary text-white">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-card-image me-2"></i>Kelimeyi Tahmin Et
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Image Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body text-center">
+                <div class="image-container">
+                    <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" 
+                         class="img-fluid rounded shadow-sm main-image pulse" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
 
-    <div class="word-display" id="censored-word">
-        {% set global_index = 0 %} <!-- Initialize a global index -->
-        {% for word in tr_word.split(' ') %}
-            <span class="word-group">
-                {% for char in word %}
-                    {% if censored[global_index] == '_' %}
-                        <span class="letter" data-index="{{ global_index }}">_</span>
-                    {% else %}
-                        <span class="letter revealed" data-index="{{ global_index }}">{{ censored[global_index] }}</span>
-                    {% endif %}
-                    {% set global_index = global_index + 1 %} <!-- Increment the global index -->
-                {% endfor %}
-            </span>
-            <span class="space">&nbsp;</span>
-            {% set global_index = global_index + 1 %} <!-- Account for the space in the censored string -->
-        {% endfor %}
-    </div>
+        <!-- Word Display Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body">
+                <div class="word-display justify-content-center" id="censored-word">
+                    {% set global_index = 0 %}
+                    {% for word in tr_word.split(' ') %}
+                        <span class="word-group">
+                            {% for char in word %}
+                                {% if censored[global_index] == '_' %}
+                                    <span class="letter" data-index="{{ global_index }}">_</span>
+                                {% else %}
+                                    <span class="letter revealed" data-index="{{ global_index }}">{{ censored[global_index] }}</span>
+                                {% endif %}
+                                {% set global_index = global_index + 1 %}
+                            {% endfor %}
+                        </span>
+                        <span class="space">&nbsp;</span>
+                        {% set global_index = global_index + 1 %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-    <div class="navigation-controls">
-        <button id="hint-btn" class="hint-btn">İpucu Al</button>
-        <button id="next-btn" class="next-btn">Sonraki Resim</button>
-    </div>
-    
-    <hr class="section-divider">
-    
-    <div class="speech-controls">
-        <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
-        <audio id="audio-recording" controls style="display:none;"></audio>
-    </div>
+        <!-- Controls Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <button id="hint-btn" class="btn btn-warning">
+                        <i class="bi bi-lightbulb me-1"></i>İpucu Al
+                    </button>
+                    <button id="next-btn" class="btn btn-success">
+                        <i class="bi bi-arrow-right me-1"></i>Sonraki Resim
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audio Controls -->
+        <div class="row g-3 mb-4">
+            <!-- Recording Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-mic me-1"></i>Telaffuz Kaydı
+                        </h6>
+                        <button id="record-toggle-btn" class="btn btn-danger mb-2">
+                            <i class="bi bi-record-circle me-1"></i>Telaffuzunu Kaydet
+                        </button>
+                        <audio id="audio-recording" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
 
-    <hr class="section-divider">
+            <!-- Pronunciation Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-volume-up me-1"></i>Doğru Telaffuz
+                        </h6>
+                        <button id="pronounce-btn" class="btn btn-info mb-2">
+                            <i class="bi bi-play-circle me-1"></i>Doğru Telaffuzu Dinle
+                        </button>
+                        <audio id="audio-pronounce" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="pronounciation-controls">
-      <button id="pronounce-btn" class="pronounce-btn">Doğru Telaffuzu Dinle</button>
-      <audio id="audio-pronounce" controls style="display:none;"></audio>
+        <!-- Message Area -->
+        <div id="message-area" class="text-center">
+            <!-- Messages will be displayed here -->
+        </div>
     </div>
-
-    <hr class="section-divider">
-
-    <div id="message-area">
-        <!-- Messages will be displayed here -->
-    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

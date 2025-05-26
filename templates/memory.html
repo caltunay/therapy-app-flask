@@ -2,54 +2,124 @@
 
 {% block title %}Hafıza Çalışması{% endblock %}
 
-{% block head %}
-{% endblock %}
-
 {% block content %}
-    <h1>Sayıları Bul</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body text-center bg-success text-white">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Sayıları Bul
+                </h1>
+            </div>
+        </div>
 
-    <div class="difficulty-slider-container">
-        <!-- <span>Zorluk Seviyesi: </span> -->
-        <input type="range" 
-               id="difficulty-slider" 
-               min="0" 
-               max="{{ difficulties|length - 1 }}" 
-               value="{{ difficulties.index(current_difficulty) if current_difficulty in difficulties else 0 }}" 
-               step="1">
-        <span id="selected-difficulty-label">{{ current_difficulty }}</span>
+        <!-- Difficulty Slider Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-3 text-center">
+                        <small class="text-muted">Kolay</small>
+                    </div>
+                    <div class="col-6">
+                        <input type="range" 
+                               id="difficulty-slider" 
+                               class="form-range"
+                               min="0" 
+                               max="{{ difficulties|length - 1 }}" 
+                               value="{{ difficulties.index(current_difficulty) if current_difficulty in difficulties else 0 }}" 
+                               step="1">
+                    </div>
+                    <div class="col-3 text-center">
+                        <small class="text-muted">Zor</small>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="badge bg-primary fs-6" id="selected-difficulty-label">{{ current_difficulty }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if game_state == 'setup' %}
+        <!-- Countdown Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <h3 class="text-muted mb-3">
+                    <i class="bi bi-stopwatch me-2"></i>Geri Sayım
+                </h3>
+                <div class="countdown display-1 text-primary fw-bold" id="countdown">{{ countdown }}</div>
+            </div>
+        </div>
+
+        <!-- Memory Numbers Display -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="memory-container d-flex flex-wrap justify-content-center gap-3">
+                    {% for number in box_numbers %}
+                        <div class="memory-box bg-primary text-white d-flex align-items-center justify-content-center rounded shadow">
+                            <span class="fs-1 fw-bold">{{ number }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% elif game_state == 'play' %}
+        <!-- Game Instructions -->
+        <div class="alert alert-info text-center mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Sayıları doğru sırayla yerleştirin!</strong>
+        </div>
+
+        <!-- Target Boxes -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-center">
+                    <i class="bi bi-target me-2"></i>Hedef Pozisyonlar
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="memory-container d-flex flex-wrap justify-content-center gap-3">
+                    {% for i in range(box_numbers|length) %}
+                        <div class="memory-box bg-light border border-2 border-primary d-flex align-items-center justify-content-center rounded shadow" id="target-box-{{ i }}">
+                            <span class="display-4 text-primary">?</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Choice Numbers -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-center">
+                    <i class="bi bi-collection me-2"></i>Seçenekler
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="choices-container d-flex flex-wrap justify-content-center gap-3">
+                    {% for number in choice_numbers %}
+                        <div class="memory-box bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow choice" 
+                             data-number="{{ number }}" style="cursor: pointer; transition: all 0.3s ease;">
+                            <span class="fs-1 fw-bold">{{ number }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Controls -->
+        <div class="text-center mt-4">
+            <button id="refresh-btn" class="btn btn-success btn-lg">
+                <i class="bi bi-arrow-clockwise me-2"></i>Yeni Sayılar Getir
+            </button>
+        </div>
+
+        <!-- Feedback Area -->
+        <div id="feedback" class="text-center mt-4"></div>
     </div>
-
-    {% if game_state == 'setup' %}
-    <h3>Geri Sayım: </h3>
-        <div class="countdown" id="countdown">{{ countdown }}</div>
-
-        <div class="memory-container">
-            {% for number in box_numbers %}
-                <div class="memory-box">{{ number }}</div>
-            {% endfor %}
-        </div>
-
-    {% elif game_state == 'play' %}
-    <h3>Sayıları Bul</h3>
-        <div class="memory-container">
-            {# Assign IDs to target boxes for revealing numbers #}
-            {% for i in range(box_numbers|length) %}
-                <div class="memory-box" id="target-box-{{ i }}">?</div>
-            {% endfor %}
-        </div>
-
-        <div class="choices-container">
-            {% for number in choice_numbers %}
-                <div class="memory-box choice" data-number="{{ number }}">{{ number }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="navigation-controls">
-        <button id="refresh-btn" class="btn btn-success">Yeni Sayılar Getir</button>
-    </div>
-
-    <div id="feedback" class="feedback"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}

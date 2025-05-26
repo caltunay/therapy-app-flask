@@ -3,36 +3,71 @@
 {% block title %}Nefes Çalışması{% endblock %}
 
 {% block content %}
-    <h1>🧘‍♀️ Nefes Egzersizi</h1>
-    
-    <div class="breathing-container">
-        <div class="breathing-controls">
-            <form id="breathing-form" action="{{ url_for('breathing_bp.index') }}" method="get">
-                <div class="control-group">
-                    <label for="breath-duration">
-                        Nefes alma/verme süresi: <b id="breath-duration-value">{{ breath_duration }}</b> saniye
-                    </label>
-                    <input type="range" min="1" max="10" value="{{ breath_duration }}" class="breathing-slider" id="breath-duration" name="breath_duration">
-                </div>
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body text-center bg-primary text-white">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-wind me-2"></i>Nefes Egzersizi
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Controls Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 text-center">
+                    <i class="bi bi-sliders me-2"></i>Ayarlar
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="breathing-form" action="{{ url_for('breathing_bp.index') }}" method="get">
+                    <div class="mb-4">
+                        <label for="breath-duration" class="form-label">
+                            Nefes alma/verme süresi: <span class="badge bg-primary" id="breath-duration-value">{{ breath_duration }}</span> saniye
+                        </label>
+                        <input type="range" min="1" max="10" value="{{ breath_duration }}" 
+                               class="form-range" id="breath-duration" name="breath_duration">
+                    </div>
 
-                <div class="control-group">
-                    <label for="hold-duration">
-                        Nefesi tutma süresi: <b id="hold-duration-value">{{ hold_duration }}</b> saniye
-                    </label>
-                    <input type="range" min="1" max="10" value="{{ hold_duration }}" class="breathing-slider" id="hold-duration" name="hold_duration">
+                    <div class="mb-4">
+                        <label for="hold-duration" class="form-label">
+                            Nefesi tutma süresi: <span class="badge bg-secondary" id="hold-duration-value">{{ hold_duration }}</span> saniye
+                        </label>
+                        <input type="range" min="1" max="10" value="{{ hold_duration }}" 
+                               class="form-range" id="hold-duration" name="hold_duration">
+                    </div>
+                </form>
+                
+                <div class="text-center">
+                    <button id="start-btn" class="btn btn-success btn-lg me-2">
+                        <i class="bi bi-play-circle me-1"></i>Başlat
+                    </button>
+                    <button id="stop-btn" class="btn btn-danger btn-lg" style="display: none;">
+                        <i class="bi bi-stop-circle me-1"></i>Durdur
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
         
-        <div class="navigation-controls">
-            <button id="start-btn" class="next-btn">Başlat</button>
-            <button id="stop-btn" class="hint-btn" style="display: none;">Durdur</button>
+        <!-- Breathing Exercise Card -->
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="breathing-label mb-4">
+                    <h3 class="text-muted" id="breathing-label">Hazır</h3>
+                </div>
+                
+                <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                    <div class="breathing-circle rounded-circle shadow-lg pulse" 
+                         id="breathing-circle" 
+                         style="width:100px; height:100px; background: linear-gradient(135deg, #4CAF50, #45a049); transition: all 0.3s ease;">
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="breathing-label" id="breathing-label">Hazır</div>
-        
-        <div class="breathing-circle" id="breathing-circle" style="width:100px; height:100px; background-color:#4CAF50;"></div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

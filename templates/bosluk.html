@@ -2,51 +2,126 @@
 
 {% block title %}Boşluk Doldurmaca{% endblock %}
 
-{% block head %}
-{% endblock %}
-
 {% block content %}
-    <h1>Boşluk Doldurmaca</h1>
-    <div class="difficulty-slider-container" style="margin-bottom: 20px; text-align:center;">
-        <label for="difficulty-slider"></label>
-        <input type="range" min="0" max="1" value="{% if difficulty == 'kolay' %}0{% else %}1{% endif %}" id="difficulty-slider">
-        <div style="display:flex; justify-content:space-between; font-size:0.9em; margin-top:2px;">
-            <span>Kolay</span><span>Zor</span>
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body text-center bg-warning text-dark">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>Boşluk Doldurmaca
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Difficulty Slider Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-3 text-center">
+                        <small class="text-muted">Kolay</small>
+                    </div>
+                    <div class="col-6">
+                        <input type="range" min="0" max="1" 
+                               value="{% if difficulty == 'kolay' %}0{% else %}1{% endif %}" 
+                               id="difficulty-slider" class="form-range">
+                    </div>
+                    <div class="col-3 text-center">
+                        <small class="text-muted">Zor</small>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="badge bg-primary fs-6">{{ difficulty.title() }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentence Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-center">
+                    <i class="bi bi-chat-quote me-2"></i>Cümle
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="sentence-container text-center">
+                    <p class="fs-5 lh-lg">{{ sentence }}</p>
+                </div>
+                <input type="hidden" id="original-sentence" value="{{ original_sentence }}">
+            </div>
+        </div>
+
+        <!-- Word Boxes Card -->
+        {% if word_boxes %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-center">
+                    <i class="bi bi-collection me-2"></i>Kelime Seçenekleri
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    {% for word in word_boxes %}
+                        <button class="btn btn-outline-primary word-box" 
+                                data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
+                            {% if difficulty == 'zor' %}
+                                {{ word }}
+                            {% else %}
+                                {{ word }}
+                            {% endif %}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Feedback Area -->
+        <div id="feedback-message" class="text-center mb-4">
+            <!-- Feedback messages will appear here -->
+        </div>
+        
+        <!-- Navigation Controls -->
+        <div class="text-center mb-4">
+            <button id="next-sentence-btn" class="btn btn-success btn-lg">
+                <i class="bi bi-arrow-right me-1"></i>Sonraki Cümleye Geç
+            </button>
+        </div>
+        
+        <!-- Audio Controls -->
+        <div class="row g-3">
+            <!-- Recording Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-mic me-1"></i>Telaffuz Kaydı
+                        </h6>
+                        <button id="record-toggle-btn" class="btn btn-danger mb-2">
+                            <i class="bi bi-record-circle me-1"></i>Telaffuzunu Kaydet
+                        </button>
+                        <audio id="audio-recording" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pronunciation Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="bi bi-volume-up me-1"></i>Cümleyi Dinle
+                        </h6>
+                        <button id="pronounce-sentence-btn" class="btn btn-info mb-2">
+                            <i class="bi bi-play-circle me-1"></i>Cümleyi Dinle
+                        </button>
+                        <audio id="audio-pronounce-sentence" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="sentence-container">
-        <p>{{ sentence }}</p>
-    </div>
-    <input type="hidden" id="original-sentence" value="{{ original_sentence }}">
-    {% if word_boxes %}
-    <div class="word-boxes-container">
-        {% for word in word_boxes %}
-            <div class="word-box" data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
-                {% if difficulty == 'zor' %}
-                    {{ word }}
-                {% else %}
-                    {{ word }}
-                {% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <div id="feedback-message" style="text-align:center; margin:15px 0; font-weight:bold; min-height:24px;"></div>
-    
-    <div class="navigation-controls">
-        <button id="next-sentence-btn" class="next-btn">Sonraki Cümleye Geç</button>
-    </div>
-    <hr class="section-divider">
-    <div class="speech-controls">
-        <button id="record-toggle-btn" class="record-btn">Telaffuzunu Kaydet</button>
-        <audio id="audio-recording" controls style="display:none;"></audio>
-    </div>
-    <hr class="section-divider">
-    <div class="pronounciation-controls">
-        <button id="pronounce-sentence-btn" class="pronounce-btn">Cümleyi Dinle</button>
-        <audio id="audio-pronounce-sentence" controls style="display:none;"></audio>
-    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -132,37 +207,55 @@
     const recordToggleBtn = document.getElementById('record-toggle-btn');
     const audioRecording = document.getElementById('audio-recording');
     let isRecording = false;
-    // Add a message area for feedback
-    let messageArea = document.getElementById('message-area');
+    
+    // Add a message area for feedback if it doesn't exist
+    let messageArea = document.getElementById('feedback-message');
     if (!messageArea) {
         messageArea = document.createElement('div');
-        messageArea.id = 'message-area';
-        document.querySelector('.speech-controls').appendChild(messageArea);
+        messageArea.id = 'feedback-message';
+        messageArea.className = 'text-center mb-4';
+        document.querySelector('.col-lg-8').appendChild(messageArea);
     }
     recordToggleBtn.onclick = async function() {
+        console.log('Record button clicked, isRecording:', isRecording);
         if (!isRecording) {
-            audioChunks = [];
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-            isRecording = true;
-            recordToggleBtn.textContent = "Kaydı Durdur";
-            recordToggleBtn.classList.add("recording");
-            // messageArea.innerHTML = '<p>Kayıt yapılıyor...</p>';
-            mediaRecorder.ondataavailable = e => {
-                audioChunks.push(e.data);
-            };
-            mediaRecorder.onstop = e => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                audioRecording.src = URL.createObjectURL(audioBlob);
-                audioRecording.style.display = 'block';
-                audioRecording.play();
-                messageArea.innerHTML = '';
-                isRecording = false;
-                recordToggleBtn.textContent = "Telaffuzunu Kaydet";
-                recordToggleBtn.classList.remove("recording");
-            };
+            try {
+                audioChunks = [];
+                console.log('Requesting microphone access...');
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone access granted');
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                isRecording = true;
+                recordToggleBtn.textContent = "Kaydı Durdur";
+                recordToggleBtn.classList.add("recording");
+                messageArea.innerHTML = '<p class="text-info">Kayıt yapılıyor...</p>';
+                
+                mediaRecorder.ondataavailable = e => {
+                    console.log('Audio data available, size:', e.data.size);
+                    audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = e => {
+                    console.log('Recording stopped');
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    console.log('Audio blob created, size:', audioBlob.size);
+                    audioRecording.src = URL.createObjectURL(audioBlob);
+                    audioRecording.style.display = 'block';
+                    audioRecording.play();
+                    messageArea.innerHTML = '<p class="text-success">Kaydınız oynatılıyor...</p>';
+                    
+                    // Reset button state
+                    isRecording = false;
+                    recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+                    recordToggleBtn.classList.remove("recording");
+                };
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                messageArea.innerHTML = '<p class="text-danger">Mikrofon erişimi başarısız: ' + error.message + '</p>';
+            }
         } else {
+            console.log('Stopping recording...');
             mediaRecorder.stop();
             isRecording = false;
             recordToggleBtn.textContent = "Telaffuzunu Kaydet";
@@ -174,15 +267,32 @@
     const pronounceSentenceBtn = document.getElementById('pronounce-sentence-btn');
     const audioPronounceSentence = document.getElementById('audio-pronounce-sentence');
     const originalSentence = document.getElementById('original-sentence').value;
+    console.log('Original sentence:', originalSentence);
+    
     pronounceSentenceBtn.onclick = function() {
+        console.log('Pronounce button clicked');
         // Use the original sentence (not the censored one)
-        fetch('/bosluk/pronounce_sentence?sentence=' + encodeURIComponent(originalSentence))
-            .then(response => response.blob())
+        const url = '/bosluk/pronounce_sentence?sentence=' + encodeURIComponent(originalSentence);
+        console.log('Fetching:', url);
+        
+        fetch(url)
+            .then(response => {
+                console.log('Response received:', response.status);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
             .then(blob => {
+                console.log('Audio blob received, size:', blob.size);
                 const url = URL.createObjectURL(blob);
                 audioPronounceSentence.src = url;
                 audioPronounceSentence.style.display = 'block';
                 audioPronounceSentence.play();
+            })
+            .catch(error => {
+                console.error('Error playing pronunciation:', error);
+                messageArea.innerHTML = '<p class="text-danger">Ses oynatılırken bir hata oluştu.</p>';
             });
     };
 </script>
