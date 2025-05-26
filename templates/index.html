@@ -104,6 +104,25 @@
 
 {% block scripts %}
 <script>
+    // Apply responsive font sizing on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const trWord = "{{ tr_word }}";
+        const totalLength = trWord.replace(/ /g, '').length;
+        const container = document.getElementById('censored-word');
+        
+        let fontSizeClass = 'font-lg'; // Default
+        
+        if (totalLength > 15) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 12) {
+            fontSizeClass = 'font-sm';
+        } else if (totalLength > 8) {
+            fontSizeClass = 'font-md';
+        }
+        
+        container.className = 'word-display justify-content-center ' + fontSizeClass;
+    });
+
     // Initialize variables
     let mediaRecorder;
     let audioChunks = [];
@@ -223,6 +242,21 @@
         const words = trWord.split(' ');
         const container = document.getElementById('censored-word');
         container.innerHTML = '';
+        
+        // Calculate appropriate font size based on word length
+        const totalLength = trWord.replace(/ /g, '').length; // Count only letters, not spaces
+        let fontSizeClass = 'font-lg'; // Default
+        
+        if (totalLength > 15) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 12) {
+            fontSizeClass = 'font-sm';
+        } else if (totalLength > 8) {
+            fontSizeClass = 'font-md';
+        }
+        
+        // Apply the font size class to the container
+        container.className = 'word-display ' + fontSizeClass;
         
         let currentPos = 0;
         

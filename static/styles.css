@@ -24,6 +24,8 @@ html, body {
     height: 100%;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -31,6 +33,8 @@ body {
     background-attachment: fixed;
     min-height: 100vh;
     position: relative;
+    margin: 0;
+    padding: 0;
 }
 
 body::before {
@@ -372,6 +376,9 @@ body::after {
     justify-content: center;
     gap: 8px;
     margin: 20px 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .word-group {
@@ -396,6 +403,31 @@ body::after {
     background: rgba(255,255,255,0.8);
     border-radius: 8px 8px 0 0;
     padding: 0 4px;
+}
+
+/* Dynamic font size classes for different word lengths */
+.word-display.font-xs .letter {
+    font-size: 1.2rem;
+    min-width: 1em;
+    height: 1.5em;
+}
+
+.word-display.font-sm .letter {
+    font-size: 1.4rem;
+    min-width: 1.1em;
+    height: 1.6em;
+}
+
+.word-display.font-md .letter {
+    font-size: 1.6rem;
+    min-width: 1.15em;
+    height: 1.7em;
+}
+
+.word-display.font-lg .letter {
+    font-size: 1.8rem;
+    min-width: 1.2em;
+    height: 1.8em;
 }
 
 .letter:hover {
@@ -461,11 +493,13 @@ audio {
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: 700;
+    padding-right: 0.5rem; /* Reduce right padding */
 }
 
 .nav-link {
     font-weight: 500;
     transition: all 0.3s ease;
+    padding: 0.5rem 0.75rem !important; /* Reduce nav-link padding */
 }
 
 .nav-link:hover {
@@ -477,12 +511,39 @@ audio {
     border-radius: 8px;
 }
 
+/* Navbar container spacing optimization */
+.navbar .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Navbar toggler positioning */
+.navbar-toggler {
+    padding: 0.25rem 0.5rem;
+    margin-left: auto;
+}
+
 /* Navbar styles */
 .navbar {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: rgba(99, 102, 241, 0.95) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0;
+    padding: 0.5rem 1rem;
+    position: relative;
+    top: 0;
+    width: 100%;
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Ensure navbar items don't wrap */
+.navbar-nav {
+    flex-wrap: nowrap !important;
+}
+
+.navbar-collapse {
+    flex-grow: 0; /* Prevent excessive growth */
 }
 
 /* Footer enhancements */
@@ -1460,13 +1521,162 @@ footer a {
     .word-box {
         flex: 0 0 calc(100% - 8px); /* Full width on very small screens */
     }
+    
+    /* Extra small screens - make navbar brand even smaller */
+    .navbar-brand {
+        font-size: 0.85rem !important; /* Even smaller for very small screens */
+        font-weight: 500 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Ultra-compact icon for tiny screens */
+    .navbar-brand i {
+        margin-right: 0.05rem !important;
+        font-size: 0.8em !important;
+    }
+    
+    /* Further reduce navbar padding on very small screens */
+    .navbar {
+        padding: 0.15rem 0.3rem !important;
+        margin: 0 !important;
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Ensure container fits properly */
+    .navbar .container-fluid {
+        padding-left: 0.15rem !important;
+        padding-right: 0.15rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Minimal navbar toggler */
+    .navbar-toggler {
+        padding: 0.1rem 0.2rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    /* Force hamburger menu at larger breakpoint */
+    .navbar-brand {
+        font-size: 1.4rem !important;
+    }
+    
+    .navbar .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    .nav-link {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Medium screens - further optimizations */
+    .navbar-brand {
+        font-size: 1.3rem !important;
+        padding-right: 0.25rem !important;
+    }
+    
+    .navbar-brand i {
+        margin-right: 0.25rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+        padding: 15px;
+        margin: 10px auto;
+    }
+    
+    /* Tablet and small desktop navbar adjustments */
+    .navbar-brand {
+        font-size: 1.2rem !important; /* Further reduced */
+        padding-right: 0 !important;
+    }
+    
+    .navbar .container-fluid {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+    
+    /* Make icon smaller to save space */
+    .navbar-brand i {
+        margin-right: 0.15rem !important;
+        font-size: 0.9em;
+    }
 }
 
 @media (max-width: 600px) {
+    /* Remove any default margins/padding that might cause gaps */
+    * {
+        box-sizing: border-box;
+    }
+    
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        overflow-x: hidden;
+        position: relative;
+        top: 0;
+    }
+    
+    /* Ensure body starts immediately at the top */
+    body {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    
     .container {
         width: 95%;
         padding: 10px; /* Further reduced padding */
         margin: 5px auto; /* Further reduced margin */
+    }
+    
+    /* Mobile navbar brand styling */
+    .navbar-brand {
+        font-size: 1rem !important; /* Even smaller for mobile */
+        font-weight: 600 !important; /* Slightly reduced font weight */
+        padding-right: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Ultra-compact icon spacing */
+    .navbar-brand i {
+        margin-right: 0.1rem !important;
+        font-size: 0.85em !important;
+    }
+    
+    /* Make navbar more compact on mobile */
+    .navbar {
+        padding: 0.25rem 0.5rem !important; /* Even more compact */
+        margin: 0 !important;
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+        border-radius: 0 !important; /* Remove any border radius that might cause gaps */
+    }
+    
+    /* Ensure no gaps around navbar container */
+    .navbar .container-fluid {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Compact navbar toggler */
+    .navbar-toggler {
+        padding: 0.15rem 0.3rem !important;
+        font-size: 0.9rem !important;
+        border: none !important;
     }
     
     .main-image {
@@ -1477,6 +1687,31 @@ footer a {
     .word-display {
         font-size: 1.3em; /* Further reduced for mobile */
         letter-spacing: 1px; /* Reduced spacing for mobile */
+    }
+    
+    /* Mobile responsive font size adjustments */
+    .word-display.font-xs .letter {
+        font-size: 1rem;
+        min-width: 0.9em;
+        height: 1.3em;
+    }
+
+    .word-display.font-sm .letter {
+        font-size: 1.1rem;
+        min-width: 0.95em;
+        height: 1.4em;
+    }
+
+    .word-display.font-md .letter {
+        font-size: 1.2rem;
+        min-width: 1em;
+        height: 1.5em;
+    }
+
+    .word-display.font-lg .letter {
+        font-size: 1.3rem;
+        min-width: 1.05em;
+        height: 1.6em;
     }
     
     .instructions {
