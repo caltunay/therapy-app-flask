@@ -60,9 +60,6 @@
                             <div class="image-memory-box card h-100 shadow-sm">
                                 <img src="{{ image.image_url }}" alt="{{ image.tr_word }}" 
                                      class="card-img-top memory-image" style="height: 120px; object-fit: cover;">
-                                <div class="card-body p-2 text-center">
-                                    <small class="card-text fw-bold">{{ image.tr_word }}</small>
-                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -72,10 +69,10 @@
 
         {% elif game_state == 'play' %}
         <!-- Game Instructions -->
-        <div class="alert alert-info text-center mb-4">
-            <i class="bi bi-info-circle me-2"></i>
+        <!-- <div class="alert alert-info text-center mb-4">
+            <i class="bi bi-info-circle me-2"></i
             <strong>Resimleri doğru sırayla yerleştirin!</strong>
-        </div>
+        </div> -->
 
         <!-- Target Boxes -->
         <div class="card shadow-sm mb-4">
@@ -117,9 +114,6 @@
                                  style="cursor: pointer; transition: all 0.3s ease;">
                                 <img src="{{ image.image_url }}" alt="{{ image.tr_word }}" 
                                      class="card-img-top memory-image" style="height: 120px; object-fit: cover;">
-                                <div class="card-body p-2 text-center">
-                                    <small class="card-text fw-bold">{{ image.tr_word }}</small>
-                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -230,10 +224,9 @@
                                     if (SCRIPT_ORIGINAL_IMAGES[i].s3_key === s3Key && !revealedStates[i]) {
                                         const targetBox = document.getElementById('target-box-' + i);
                                         if (targetBox) {
-                                            // Replace the question mark with the actual image and word
+                                            // Replace the question mark with the actual image
                                             targetBox.innerHTML = `
                                                 <img src="${imageUrl}" alt="${trWord}" class="memory-image">
-                                                <div class="image-word">${trWord}</div>
                                             `;
                                             targetBox.classList.add('revealed');
                                         }
