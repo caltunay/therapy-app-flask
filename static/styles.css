@@ -373,6 +373,79 @@ h3 {
     background-color: #007bff;
 }
 
+/* Menu button styles */
+.nav-toggle {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    min-width: 120px;
+    height: 40px;
+    background: #007bff;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    color: white;
+    font-size: 1em;
+    font-weight: 500;
+    padding: 0 15px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-toggle:hover {
+    background: #0056b3;
+}
+
+.nav-toggle-label {
+    margin-right: 8px;
+}
+
+.nav-toggle .bar {
+    display: none;
+}
+
+@media (max-width: 800px) {
+    .nav-toggle {
+        display: flex;
+    }
+    .nav-menu {
+        flex-direction: column;
+        align-items: flex-start;
+        position: absolute;
+        top: 54px;
+        left: 0;
+        width: 100vw;
+        background: #333;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        display: none;
+        margin-bottom: 0;
+        padding: 0 0 10px 0;
+    }
+    .nav-menu.open {
+        display: flex;
+    }
+    .nav-item {
+        width: 100%;
+        padding: 14px 24px;
+        margin: 0;
+        border-radius: 0;
+        border-bottom: 1px solid #444;
+        font-size: 1.1em;
+        text-align: left;
+    }
+}
+
+@media (max-width: 800px) {
+    body {
+        padding-top: 54px;
+    }
+}
+
 /* Breathing Exercise Styles */
 .breathing-container {
     display: flex;
