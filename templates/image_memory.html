@@ -7,7 +7,7 @@
     <div class="col-lg-10 col-xl-8">
         <!-- Header Card -->
         <div class="card shadow-sm mb-4 fade-in">
-            <div class="card-body text-center bg-info text-white">
+            <div class="card-body text-center header-bg">
                 <h1 class="card-title mb-0">
                     <i class="bi bi-images me-2"></i>Resimleri Bul
                 </h1>
@@ -217,7 +217,7 @@
                         
                         if (data.valid) {
                             if (data.correct) {
-                                this.style.display = 'none'; // Hide the clicked choice box
+                                this.remove(); // Completely remove the clicked choice box from DOM
 
                                 // Find the first unrevealed target box slot
                                 for (let i = 0; i < SCRIPT_ORIGINAL_IMAGES.length; i++) {
@@ -228,6 +228,9 @@
                                             targetBox.innerHTML = `
                                                 <img src="${imageUrl}" alt="${trWord}" class="memory-image">
                                             `;
+                                            // Change border from blue to green for correctly guessed images
+                                            targetBox.classList.remove('border-primary');
+                                            targetBox.classList.add('border-success');
                                             targetBox.classList.add('revealed');
                                         }
                                         revealedStates[i] = true; // Mark this slot as revealed
