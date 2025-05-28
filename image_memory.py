@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session, request, jsonify, redirect, url_for
 import random
 from data_services import get_random_entry, get_image_url
+from auth_service import login_required
 
 image_memory_bp = Blueprint('image_memory_bp', __name__, url_prefix='/image_memory')
 
@@ -13,6 +14,7 @@ DIFFICULTY_SETTINGS = {
 DEFAULT_DIFFICULTY = 'Kolay'
 
 @image_memory_bp.route('/')
+@login_required
 def index():
     # Reset game state
     session['image_game_state'] = 'setup'
@@ -48,6 +50,7 @@ def index():
                           difficulties=list(DIFFICULTY_SETTINGS.keys()))
 
 @image_memory_bp.route('/play')
+@login_required
 def play():
     # Move to the play phase
     if 'original_images' not in session or 'image_difficulty' not in session:
@@ -90,6 +93,7 @@ def play():
                           difficulties=list(DIFFICULTY_SETTINGS.keys()))
 
 @image_memory_bp.route('/check', methods=['POST'])
+@login_required
 def check():
     if 'original_images' not in session:
         return jsonify({'valid': False, 'message': 'No active game'})

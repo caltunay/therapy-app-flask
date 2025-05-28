@@ -3,10 +3,12 @@ import random
 from data_services import get_random_sentence
 from gtts import gTTS
 from io import BytesIO
+from auth_service import login_required
 
 bosluk_bp = Blueprint('bosluk_bp', __name__, url_prefix='/bosluk')
 
 @bosluk_bp.route('/')
+@login_required
 def index():
     difficulty = request.args.get('difficulty', 'kolay')
     items = [get_random_sentence(difficulty) for _ in range(5)]
@@ -59,6 +61,7 @@ def index():
         return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=word_boxes, hidden_word='_' * (len(hidden_word)//2) + hidden_word[len(hidden_word)//2:], original_word=hidden_word, original_sentence=original_sentence)
 
 @bosluk_bp.route('/guess', methods=['POST'])
+@login_required
 def guess():
     data = request.get_json()
     idx = int(data.get('index'))
@@ -86,6 +89,7 @@ def guess():
         return jsonify({'success': False})
 
 @bosluk_bp.route('/multi')
+@login_required
 def multi():
     difficulty = request.args.get('difficulty', 'kolay')
     # Get the main sentence and 4 more
@@ -113,6 +117,7 @@ def multi():
     return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=words)
 
 @bosluk_bp.route('/pronounce_sentence')
+@login_required
 def pronounce_sentence():
     # Get the current sentence from the query or session (here, from the request args for simplicity)
     sentence = request.args.get('sentence')

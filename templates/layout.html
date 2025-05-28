@@ -28,6 +28,7 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
+                {% if session.get('user_id') %}
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == url_for('breathing_bp.index') %}active{% endif %}" 
@@ -59,7 +60,26 @@
                             <i class="bi bi-images me-1"></i>Resim Hafızası
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i>Çıkış
+                        </a>
+                    </li>
                 </ul>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Giriş
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('signup') }}">
+                            <i class="bi bi-person-plus me-1"></i>Kayıt
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
             </div>
         </div>
     </nav>

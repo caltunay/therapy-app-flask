@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, request, Response
 import json
 import time
+from auth_service import login_required
 
 # Create a Blueprint with URL prefix
 breathing_bp = Blueprint('breathing_bp', __name__, url_prefix='/breathing')
 
 # Now the route doesn't need /breathing prefix since the blueprint has it
 @breathing_bp.route('/')
+@login_required
 def index():
     # Default values for the sliders
     breath_duration = request.args.get('breath_duration', 4, type=int)
@@ -18,6 +20,7 @@ def index():
 
 # Now the route is /breathing/start instead of /breathing/breathing/start
 @breathing_bp.route('/start')
+@login_required
 def start():
     """Start a new breathing session with server-sent events"""
     breath_duration = request.args.get('breath_duration', 4, type=int)
