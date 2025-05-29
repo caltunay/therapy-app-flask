@@ -95,6 +95,68 @@ def logout():
     flash('Başarıyla çıkış yaptınız.', 'success')
     return redirect(url_for('login'))
 
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        if not email:
+            return render_template('forgot_password.html', error='E-posta adresi gereklidir.')
+        
+        result = auth_service.reset_password_for_email(email)
+        
+        if result['success']:
+            return render_template('forgot_password.html', 
+                                success='Şifre sıfırlama e-postası gönderildi! E-postanızı kontrol edin.')
+        else:
+            return render_template('forgot_password.html', 
+                                error='E-posta gönderilirken bir hata oluştu.')
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        access_token = request.form.get('access_token')
+        refresh_token = request.form.get('refresh_token')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Debug: Print what we received
+        print(f"DEBUG - access_token: {access_token}")
+        print(f"DEBUG - refresh_token: {refresh_token}")
+        print(f"DEBUG - new_password present: {bool(new_password)}")
+        print(f"DEBUG - confirm_password present: {bool(confirm_password)}")
+        
+        if not access_token or not new_password or not confirm_password:
+            error_msg = 'Tüm alanlar gereklidir.'
+            if not access_token:
+                error_msg = 'Geçersiz erişim bağlantısı. Lütfen e-postanızdaki bağlantıyı tekrar kullanın.'
+            return render_template('reset_password.html', error=error_msg, access_token=access_token, refresh_token=refresh_token)
+        
+        if new_password != confirm_password:
+            return render_template('reset_password.html', error='Şifreler eşleşmiyor.', access_token=access_token, refresh_token=refresh_token)
+        
+        if len(new_password) < 6:
+            return render_template('reset_password.html', error='Şifre en az 6 karakter olmalıdır.', access_token=access_token, refresh_token=refresh_token)
+        
+        result = auth_service.update_password(access_token, refresh_token, new_password)
+        
+        if result['success']:
+            return render_template('reset_password.html', 
+                                success='Şifreniz başarıyla güncellendi! Giriş yapabilirsiniz.')
+        else:
+            return render_template('reset_password.html', 
+                                error='Şifre güncellenirken bir hata oluştu.', access_token=access_token, refresh_token=refresh_token)
+    
+    # Get tokens from URL query parameters 
+    access_token = request.args.get('access_token', '')
+    refresh_token = request.args.get('refresh_token', '')
+    
+    return render_template('reset_password.html', 
+                         access_token=access_token, 
+                         refresh_token=refresh_token)
+
 @app.route('/breathing')
 @login_required
 def breathing_redirect():

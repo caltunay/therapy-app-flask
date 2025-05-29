@@ -51,6 +51,41 @@ class AuthService:
             return {"success": True, "user": user.user}
         except Exception as e:
             return {"success": False, "error": str(e)}
+    
+    def reset_password_for_email(self, email: str) -> dict:
+        """Send password reset email"""
+        try:
+            # Get base URL from environment or default to 127.0.0.1
+            base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
+            response = self.supabase.auth.reset_password_for_email(
+                email,
+                {
+                    "redirect_to": f"{base_url}/reset-password"
+                }
+            )
+            return {"success": True, "data": response}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def update_password(self, access_token: str, refresh_token: str, new_password: str) -> dict:
+        """Update user password"""
+        try:
+            print(f"DEBUG - Attempting to update password with access token: {access_token[:50]}...")
+            print(f"DEBUG - Refresh token: {refresh_token}")
+            
+            # For password reset, we need to use both access token and refresh token
+            self.supabase.auth.set_session(access_token, refresh_token)
+            
+            # Update the user's password
+            response = self.supabase.auth.update_user({
+                "password": new_password
+            })
+            
+            print(f"DEBUG - Password update response: {response}")
+            return {"success": True, "data": response}
+        except Exception as e:
+            print(f"DEBUG - Password update error: {str(e)}")
+            return {"success": False, "error": str(e)}
 
 # Initialize auth service
 auth_service = AuthService()
