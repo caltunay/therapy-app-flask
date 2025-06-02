@@ -26,6 +26,13 @@ app.register_blueprint(bosluk_bp)
 app.register_blueprint(memory_bp)
 app.register_blueprint(image_memory_bp)
 
+# Context processor to make environment variables available to all templates
+@app.context_processor
+def inject_config():
+    return {
+        'POSTHOG_PROJECT_KEY': os.getenv('POSTHOG_PROJECT_KEY')
+    }
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
