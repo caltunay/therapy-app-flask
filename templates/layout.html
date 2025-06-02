@@ -30,6 +30,35 @@
         });
     }
     </script>
+    
+    <!-- PostHog User Identification -->
+    {% if should_identify and user_email %}
+    <script>
+    if (window.posthog) {
+        // Store the last identified email to avoid redundant calls
+        const lastIdentifiedEmail = localStorage.getItem('posthog_identified_email');
+        const currentEmail = '{{ user_email }}';
+        
+        if (lastIdentifiedEmail !== currentEmail) {
+            posthog.identify(currentEmail, {
+                email: currentEmail
+            });
+            localStorage.setItem('posthog_identified_email', currentEmail);
+        }
+    }
+    </script>
+    {% endif %}
+    
+    {% if should_reset %}
+    <script>
+    if (window.posthog) {
+        posthog.reset();
+        // Clear the stored identified email
+        localStorage.removeItem('posthog_identified_email');
+    }
+    </script>
+    {% endif %}
+    
     {% endblock %}
 </head>
 <body class="bg-light">

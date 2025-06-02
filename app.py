@@ -29,8 +29,18 @@ app.register_blueprint(image_memory_bp)
 # Context processor to make environment variables available to all templates
 @app.context_processor
 def inject_config():
+    user_email = session.get('user_email')
+    should_identify_new_login = session.pop('posthog_identify', False)
+    should_reset = session.pop('posthog_reset', False)
+    
+    # Always identify if user is logged in (either new login or existing session)
+    should_identify = should_identify_new_login or bool(user_email)
+    
     return {
-        'POSTHOG_PROJECT_KEY': os.getenv('POSTHOG_PROJECT_KEY')
+        'POSTHOG_PROJECT_KEY': os.getenv('POSTHOG_PROJECT_KEY'),
+        'user_email': user_email,
+        'should_identify': should_identify,
+        'should_reset': should_reset
     }
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -51,6 +61,7 @@ def login():
             session['user_id'] = user_data.user.id
             session['access_token'] = user_data.session.access_token
             session['user_email'] = user_data.user.email
+            session['posthog_identify'] = True  # Flag to trigger PostHog identify
             
             # Redirect to original page or home
             next_page = request.args.get('next')
@@ -98,6 +109,7 @@ def signup():
 @login_required
 def logout():
     auth_service.sign_out()
+    session['posthog_reset'] = True  # Flag to trigger PostHog reset
     session.clear()
     flash('Başarıyla çıkış yaptınız.', 'success')
     return redirect(url_for('login'))
