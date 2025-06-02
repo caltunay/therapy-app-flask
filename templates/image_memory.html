@@ -40,6 +40,11 @@
             </div>
         </div>
 
+        <!-- Message Area -->
+        <div id="message-area" class="text-center mb-3" style="display: none;">
+            <!-- Messages will be displayed here -->
+        </div>
+
         {% if game_state == 'setup' %}
         <!-- Countdown Card -->
         <div class="card shadow-sm mb-4">
@@ -153,6 +158,19 @@
     
     let revealedStates = []; // Tracks which original image slots have been filled
 
+    // Helper function to show/hide message area
+    function showMessage(html) {
+        const messageArea = document.getElementById('message-area');
+        messageArea.innerHTML = html;
+        messageArea.style.display = 'block';
+    }
+    
+    function hideMessage() {
+        const messageArea = document.getElementById('message-area');
+        messageArea.innerHTML = '';
+        messageArea.style.display = 'none';
+    }
+
     function navigateTo(url) {
         window.location.href = url;
     }
@@ -175,8 +193,7 @@
             });
         }
 
-        const countdownElement = document.getElementById('countdown'); 
-        const feedback = document.getElementById('feedback');
+        const countdownElement = document.getElementById('countdown');
 
         if (SCRIPT_GAME_STATE === 'setup') {
             let timer = parseInt(SCRIPT_COUNTDOWN, 10);
@@ -248,11 +265,7 @@
                                 if (allImagesFound || data.allFound) {
                                     console.log("Condition met to show congratulations!");
                                     
-                                    feedback.innerHTML = '';
-                                    let congratsDiv = document.createElement('div');
-                                    congratsDiv.className = 'congrats-message';
-                                    congratsDiv.textContent = 'Tebrikler! Tüm resimleri buldunuz.';
-                                    feedback.appendChild(congratsDiv);
+                                    showMessage('<p class="success-message">Tebrikler! Tüm resimleri buldunuz.</p>');
 
                                     choiceBoxes.forEach(box => {
                                         box.style.pointerEvents = 'none';
@@ -268,18 +281,12 @@
                             this.onclick = null; // Prevent multiple clicks on this choice
                         } else {
                             console.error("Error from /check:", data.message);
-                            if (feedback) {
-                                feedback.textContent = data.message || 'Bir hata oluştu.';
-                                feedback.style.color = 'red';
-                            }
+                            showMessage('<p class="error-message">' + (data.message || 'Bir hata oluştu.') + '</p>');
                         }
                     })
                     .catch(error => {
                         console.error("Fetch error:", error);
-                        if (feedback) {
-                            feedback.textContent = 'Sunucuyla iletişim kurulamadı.';
-                            feedback.style.color = 'red';
-                        }
+                        showMessage('<p class="error-message">Sunucuyla iletişim kurulamadı.</p>');
                     });
                 });
             });

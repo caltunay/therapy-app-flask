@@ -76,9 +76,9 @@
         </div>
         {% endif %}
         
-        <!-- Feedback Area -->
-        <div id="feedback-message" class="text-center mb-4">
-            <!-- Feedback messages will appear here -->
+        <!-- Message Area -->
+        <div id="message-area" class="text-center mb-3" style="display: none;">
+            <!-- Messages will be displayed here -->
         </div>
         
         <!-- Navigation Controls -->
@@ -129,8 +129,19 @@
     const slider = document.getElementById('difficulty-slider');
     const label = document.getElementById('difficulty-label');
     const DIFFICULTY_MAP = ['kolay', 'zor'];
-    const feedbackMessage = document.getElementById('feedback-message');
+    const messageArea = document.getElementById('message-area');
     const hiddenWord = "{{ original_word }}";
+    
+    // Helper function to show/hide message area
+    function showMessage(html) {
+        messageArea.innerHTML = html;
+        messageArea.style.display = 'block';
+    }
+    
+    function hideMessage() {
+        messageArea.innerHTML = '';
+        messageArea.style.display = 'none';
+    }
     
     // Make word boxes clickable
     document.querySelectorAll('.word-box').forEach(box => {
@@ -138,16 +149,14 @@
             const selectedWord = this.getAttribute('data-word');
             if ("{{ difficulty }}" === "zor") {
                 if (selectedWord === hiddenWord) {
-                    feedbackMessage.textContent = "Tebrikler! Doğru kelimeyi buldunuz.";
-                    feedbackMessage.style.color = "#4CAF50"; // Green
+                    showMessage('<p class="success-message">Tebrikler! Doğru kelimeyi buldunuz.</p>');
                     this.style.backgroundColor = "#4CAF50";
                     this.style.color = "white";
                     document.querySelectorAll('.word-box').forEach(b => {
                         b.style.pointerEvents = "none";
                     });
                 } else {
-                    feedbackMessage.textContent = "Yanlış cevap. Tekrar deneyin.";
-                    feedbackMessage.style.color = "#f44336"; // Red
+                    showMessage('<p class="error-message">Yanlış cevap. Tekrar deneyin.</p>');
                     const originalBg = this.style.backgroundColor;
                     this.style.backgroundColor = "#f44336";
                     this.style.color = "white";
@@ -162,16 +171,14 @@
                 const half = Math.floor(originalWord.length / 2);
                 const firstHalf = originalWord.substring(0, half);
                 if (selectedWord === firstHalf) {
-                    feedbackMessage.textContent = "Tebrikler! Doğru kelimeyi buldunuz.";
-                    feedbackMessage.style.color = "#4CAF50";
+                    showMessage('<p class="success-message">Tebrikler! Doğru kelimeyi buldunuz.</p>');
                     this.style.backgroundColor = "#4CAF50";
                     this.style.color = "white";
                     document.querySelectorAll('.word-box').forEach(b => {
                         b.style.pointerEvents = "none";
                     });
                 } else {
-                    feedbackMessage.textContent = "Yanlış cevap. Tekrar deneyin.";
-                    feedbackMessage.style.color = "#f44336";
+                    showMessage('<p class="error-message">Yanlış cevap. Tekrar deneyin.</p>');
                     const originalBg = this.style.backgroundColor;
                     this.style.backgroundColor = "#f44336";
                     this.style.color = "white";
@@ -207,15 +214,6 @@
     const recordToggleBtn = document.getElementById('record-toggle-btn');
     const audioRecording = document.getElementById('audio-recording');
     let isRecording = false;
-    
-    // Add a message area for feedback if it doesn't exist
-    let messageArea = document.getElementById('feedback-message');
-    if (!messageArea) {
-        messageArea = document.createElement('div');
-        messageArea.id = 'feedback-message';
-        messageArea.className = 'text-center mb-4';
-        document.querySelector('.col-lg-8').appendChild(messageArea);
-    }
     recordToggleBtn.onclick = async function() {
         console.log('Record button clicked, isRecording:', isRecording);
         if (!isRecording) {
@@ -229,7 +227,7 @@
                 isRecording = true;
                 recordToggleBtn.textContent = "Kaydı Durdur";
                 recordToggleBtn.classList.add("recording");
-                messageArea.innerHTML = '<p class="text-info">Kayıt yapılıyor...</p>';
+                showMessage('<p class="text-info">Kayıt yapılıyor...</p>');
                 
                 mediaRecorder.ondataavailable = e => {
                     console.log('Audio data available, size:', e.data.size);
@@ -243,7 +241,7 @@
                     audioRecording.src = URL.createObjectURL(audioBlob);
                     audioRecording.style.display = 'block';
                     audioRecording.play();
-                    messageArea.innerHTML = '<p class="text-success">Kaydınız oynatılıyor...</p>';
+                    showMessage('<p class="text-success">Kaydınız oynatılıyor...</p>');
                     
                     // Reset button state
                     isRecording = false;
@@ -252,7 +250,7 @@
                 };
             } catch (error) {
                 console.error('Error accessing microphone:', error);
-                messageArea.innerHTML = '<p class="text-danger">Mikrofon erişimi başarısız: ' + error.message + '</p>';
+                showMessage('<p class="text-danger">Mikrofon erişimi başarısız: ' + error.message + '</p>');
             }
         } else {
             console.log('Stopping recording...');
@@ -292,7 +290,7 @@
             })
             .catch(error => {
                 console.error('Error playing pronunciation:', error);
-                messageArea.innerHTML = '<p class="text-danger">Ses oynatılırken bir hata oluştu.</p>';
+                showMessage('<p class="text-danger">Ses oynatılırken bir hata oluştu.</p>');
             });
     };
 </script>

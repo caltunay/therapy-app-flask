@@ -47,6 +47,24 @@
             </div>
         </div>
 
+        <!-- Message Area -->
+        <div id="message-area" class="text-center mb-3" style="display: none;">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <!-- Word Guess Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body">
+                <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap">
+                    <input type="text" id="word-guess-input" class="form-control" 
+                           placeholder="Tahmini buraya yazın..." style="max-width: 300px;">
+                    <button id="guess-word-btn" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i>Tahmin Et!
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Controls Card -->
         <div class="card shadow-sm mb-4 fade-in">
             <div class="card-body">
@@ -93,11 +111,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Message Area -->
-        <div id="message-area" class="text-center">
-            <!-- Messages will be displayed here -->
-        </div>
     </div>
 </div>
 {% endblock %}
@@ -132,8 +145,55 @@
     const hintBtn = document.getElementById('hint-btn');
     const nextBtn = document.getElementById('next-btn');
     const pronounceBtn = document.getElementById('pronounce-btn');
+    const guessWordBtn = document.getElementById('guess-word-btn');
+    const wordGuessInput = document.getElementById('word-guess-input');
     const messageArea = document.getElementById('message-area');
     let isRecording = false;
+
+    // Helper function to show/hide message area
+    function showMessage(html) {
+        messageArea.innerHTML = html;
+        messageArea.style.display = 'block';
+    }
+    
+    function hideMessage() {
+        messageArea.innerHTML = '';
+        messageArea.style.display = 'none';
+    }
+
+    // Word guess functionality
+    guessWordBtn.addEventListener('click', function() {
+        const userGuess = wordGuessInput.value.trim();
+        const trWord = "{{ tr_word }}";
+        
+        // Clear any previous messages
+        hideMessage();
+        
+        if (!userGuess) {
+            showMessage('<p class="error-message">Lütfen bir kelime girin!</p>');
+            return;
+        }
+        
+        // Compare the guess with the actual word (case insensitive)
+        if (userGuess.toLowerCase() === trWord.toLowerCase()) {
+            // Reveal the entire word by creating a censored string with all letters revealed
+            const fullyCensored = trWord; // Show the complete word
+            updateCensoredWord(fullyCensored);
+            
+            showMessage('<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>');
+            // Clear the input
+            wordGuessInput.value = '';
+        } else {
+            showMessage('<p class="error-message">Yanlış tahmin!</p>');
+        }
+    });
+
+    // Allow Enter key to submit guess
+    wordGuessInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            guessWordBtn.click();
+        }
+    });
 
     // Hint button functionality
     hintBtn.addEventListener('click', function() {
@@ -170,7 +230,7 @@
         if (this.textContent !== '_') return;
         
         // Clear any previous messages when attempting a new guess
-        messageArea.innerHTML = '';
+        hideMessage();
         
         const idx = this.dataset.index;
         const input = prompt("Bir harf girin:");
@@ -187,12 +247,12 @@
                 if (data.success) {
                     updateCensoredWord(data.censored);
                 } else {
-                    messageArea.innerHTML = '<p class="error-message">Yanlış tahmin!</p>';
+                    showMessage('<p class="error-message">Yanlış tahmin!</p>');
                 }
             });
         } else if (input) {
             // Show error message if input is not a single letter
-            messageArea.innerHTML = '<p class="error-message">Lütfen sadece bir harf girin!</p>';
+            showMessage('<p class="error-message">Lütfen sadece bir harf girin!</p>');
         }
     }
 
@@ -207,7 +267,7 @@
             isRecording = true;
             recordToggleBtn.textContent = "Kaydı Durdur";
             recordToggleBtn.classList.add("recording");
-            messageArea.innerHTML = '<p>Kayıt yapılıyor...</p>';
+            showMessage('<p>Kayıt yapılıyor...</p>');
             
             mediaRecorder.ondataavailable = e => {
                 audioChunks.push(e.data);
@@ -218,7 +278,7 @@
                 audioRecording.src = URL.createObjectURL(audioBlob);
                 audioRecording.style.display = 'block';
                 audioRecording.play();
-                messageArea.innerHTML = '<p>Kaydınız oynatılıyor...</p>';
+                showMessage('<p>Kaydınız oynatılıyor...</p>');
                 
                 // Reset button state
                 isRecording = false;
@@ -308,7 +368,7 @@
         }
         
         if (!censored.includes('_')) {
-            messageArea.innerHTML = '<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>';
+            showMessage('<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>');
         }
     }
 </script>
