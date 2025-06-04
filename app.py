@@ -10,6 +10,7 @@ from breathing import breathing_bp
 from bosluk import bosluk_bp
 from memory import memory_bp
 from image_memory import image_memory_bp
+from word_pronunciation import word_pronunciation_bp
 from data_services import get_random_entry, get_image_url
 from auth_service import auth_service, login_required
 
@@ -25,6 +26,7 @@ app.register_blueprint(breathing_bp)
 app.register_blueprint(bosluk_bp)
 app.register_blueprint(memory_bp)
 app.register_blueprint(image_memory_bp)
+app.register_blueprint(word_pronunciation_bp)
 
 # Context processor to make environment variables available to all templates
 @app.context_processor
@@ -290,4 +292,4 @@ def guess():
         return jsonify({'success': False})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

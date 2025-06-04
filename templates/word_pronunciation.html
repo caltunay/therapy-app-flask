@@ -1,0 +1,521 @@
+{% extends "layout.html" %}
+
+{% block title %}Kelime Telaffuzu - Terapi Uygulaması{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    .pronunciation-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .sentence-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .sentence-text {
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .recording-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .record-button {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+    }
+    
+    .record-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+    
+    .record-button.recording {
+        background: linear-gradient(135deg, #ff4757, #c44569);
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .audio-controls {
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .btn-custom {
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 0.5rem;
+    }
+    
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+    }
+    
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .results-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+    }
+    
+    .score-display {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .score-excellent { background: linear-gradient(135deg, #00b894, #00a085); }
+    .score-good { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+    .score-fair { background: linear-gradient(135deg, #fdcb6e, #e17055); }
+    .score-poor { background: linear-gradient(135deg, #fd79a8, #e84393); }
+    
+    .comparison-section {
+        margin-top: 2rem;
+    }
+    
+    .text-comparison {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .tips-section {
+        background: #e3f2fd;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .hidden { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pronunciation-container">
+    <!-- Header Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body text-center header-bg">
+            <h1 class="card-title mb-0">
+                <i class="bi bi-mic me-2"></i>Telaffuzunu Değerlendir
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Sentence Card -->
+    <div class="sentence-card">
+        <div class="sentence-text" id="currentSentence">{{ sentence }}</div>
+        <button class="btn btn-outline-light btn-sm" onclick="getNewSentence()">
+            🎲 Sonraki Cümleyi Getir
+        </button>
+    </div>
+    
+    <!-- Recording Section -->
+    <div class="recording-section">
+        <div class="text-center">
+            <button class="record-button" id="recordButton" onclick="toggleRecording()">
+                <i class="bi bi-mic-fill"></i>
+            </button>
+            <div id="recordingStatus" class="text-muted">Kayda başlamak için tıklayın</div>
+        </div>
+        
+        <!-- Audio Player (hidden initially) -->
+        <div id="audioSection" class="audio-controls hidden">
+            <audio id="audioPlayer" controls class="mb-3" style="width: 100%;"></audio>
+            <div>
+                <button class="btn btn-primary-custom btn-custom" onclick="assessPronunciation()">
+                    🎯 Telaffuzu Değerlendir
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">İşleniyor...</span>
+            </div>
+            <p class="mt-2">Telaffuzunuz analiz ediliyor...</p>
+        </div>
+    </div>
+    
+    <!-- Results Section -->
+    <div id="resultsSection" class="results-section hidden">
+        <div id="scoreDisplay" class="score-display">
+            <!-- Score will be populated by JavaScript -->
+        </div>
+        
+        <div id="comparisonSection" class="comparison-section">
+            <!-- Comparison will be populated by JavaScript -->
+        </div>
+        
+        <div id="tipsSection" class="tips-section hidden">
+            <h5>💡 Gelişim için ipuçları:</h5>
+            <ul>
+                <li>Daha yavaş ve net konuşun</li>
+                <li>Her heceyi telaffuz etmeye odaklanın</li>
+                <li>Sessiz bir ortamda kayıt yapmaya çalışın</li>
+                <li>Kaydetmeden önce cümleyi birkaç kez pratik edin</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
+function getNewSentence() {
+    fetch('/word-pronunciation/get-random-sentence', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('currentSentence').textContent = data.sentence;
+        // Hide results when getting new sentence
+        document.getElementById('resultsSection').classList.add('hidden');
+        document.getElementById('audioSection').classList.add('hidden');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Yeni cümle alırken hata oluştu');
+    });
+}
+
+function toggleRecording() {
+    if (isRecording) {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+}
+
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ 
+        audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            volume: 1.0
+        } 
+    })
+        .then(stream => {
+            // Try to use specific MIME types that work better with Google Speech API
+            let options = {};
+            
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                options = { mimeType: 'audio/webm;codecs=opus' };
+            } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                options = { mimeType: 'audio/ogg;codecs=opus' };
+            } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+                options = { mimeType: 'audio/wav' };
+            }
+            
+            mediaRecorder = new MediaRecorder(stream, options);
+            audioChunks = [];
+            
+            console.log('Using MIME type:', mediaRecorder.mimeType);
+            
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                console.log('Audio blob size:', audioBlob.size, 'bytes');
+                console.log('Audio blob type:', audioBlob.type);
+                
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = audioUrl;
+                
+                // Store the audio blob for submission
+                window.currentAudioBlob = audioBlob;
+                
+                // Show audio section
+                document.getElementById('audioSection').classList.remove('hidden');
+                
+                // Stop all tracks to release microphone
+                stream.getTracks().forEach(track => track.stop());
+            };
+            
+            mediaRecorder.start(1000); // Collect data every 1 second
+            isRecording = true;
+            
+            const recordButton = document.getElementById('recordButton');
+            recordButton.classList.add('recording');
+            recordButton.innerHTML = '<i class="bi bi-stop-fill"></i>';
+            
+            document.getElementById('recordingStatus').textContent = 'Kaydediliyor... Durdurmak için tıklayın';
+        })
+        .catch(error => {
+            console.error('Error accessing microphone:', error);
+            alert('Mikrofona erişim hatası. Lütfen mikrofon iznini verdiğinizden emin olun.');
+        });
+}
+
+function stopRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        
+        const recordButton = document.getElementById('recordButton');
+        recordButton.classList.remove('recording');
+        recordButton.innerHTML = '<i class="bi bi-mic-fill"></i>';
+        
+        document.getElementById('recordingStatus').textContent = 'Kayıt tamamlandı! Tekrar kayıt yapmak için tıklayın';
+    }
+}
+
+function assessPronunciation() {
+    if (!window.currentAudioBlob) {
+        alert('Lütfen önce ses kaydedin');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('audio', window.currentAudioBlob, 'recording.wav');
+    
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('resultsSection').classList.add('hidden');
+    
+    fetch('/word-pronunciation/assess-pronunciation', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.text(); // Get text first to see raw response
+    })
+    .then(text => {
+        console.log('Raw response text:', text);
+        
+        // Check if we got redirected to login (response contains HTML)
+        if (text.includes('<!doctype html>') || text.includes('<html')) {
+            console.warn('Received HTML response, likely redirected to login');
+            alert('Oturumunuzun süresi doldu. Lütfen sayfayı yenileyin ve tekrar giriş yapın.');
+            window.location.reload();
+            return;
+        }
+        
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse JSON:', e);
+            console.error('Response text:', text);
+            alert('Hata: Sunucu geçersiz JSON döndürdü');
+            return;
+        }
+        
+        // Hide loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+        
+        console.log('Assessment response data:', data);
+        
+        if (data.error) {
+            console.error('Server returned error:', data.error);
+            alert('Hata: ' + data.error);
+            return;
+        }
+        
+        try {
+            displayResults(data);
+        } catch (error) {
+            console.error('Error in displayResults:', error);
+            console.error('Error stack:', error.stack);
+            alert('Sonuçları gösterirken hata: ' + error.message);
+        }
+    })
+    .catch(error => {
+        // Hide loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+        console.error('Error:', error);
+        alert('Ses işlenirken hata');
+    });
+}
+
+function displayResults(data) {
+    console.log('displayResults called with:', data);
+    
+    const score = data.score;
+    console.log('Score:', score);
+    
+    // First, show results section to ensure elements are available
+    const resultsSection = document.getElementById('resultsSection');
+    if (!resultsSection) {
+        console.error('resultsSection not found!');
+        alert('Hata: Sonuç bölümü bulunamadı');
+        return;
+    }
+    resultsSection.classList.remove('hidden');
+    
+    let scoreClass, scoreIcon;
+    
+    if (score >= 90) {
+        scoreClass = 'score-excellent';
+        scoreIcon = '🎉';
+    } else if (score >= 75) {
+        scoreClass = 'score-good';
+        scoreIcon = '👍';
+    } else if (score >= 60) {
+        scoreClass = 'score-fair';
+        scoreIcon = '👌';
+    } else {
+        scoreClass = 'score-poor';
+        scoreIcon = '💪';
+    }
+    
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    if (!scoreDisplay) {
+        console.error('scoreDisplay element not found!');
+        alert('Hata: Puan gösterge öğesi bulunamadı');
+        return;
+    }
+    
+    scoreDisplay.innerHTML = `
+        <div class="score-circle ${scoreClass}">
+            ${Math.round(score)}%
+        </div>
+        <h4>${scoreIcon} ${data.message}</h4>
+        <p class="text-muted">Doğruluk Seviyesi: ${data.accuracy_level}</p>
+    `;
+    
+    const comparisonSection = document.getElementById('comparisonSection');
+    if (!comparisonSection) {
+        console.error('comparisonSection element not found!');
+        alert('Hata: Karşılaştırma bölümü öğesi bulunamadı');
+        return;
+    }
+    
+    comparisonSection.innerHTML = `
+        <h5>📊 Detaylı Analiz</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="text-comparison">
+                    <strong>Beklenen:</strong><br>
+                    "${data.expected}"
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-comparison">
+                    <strong>Söylediğiniz:</strong><br>
+                    "${data.transcript}"
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4 text-center">
+                <strong>Benzerlik Puanı</strong><br>
+                <span class="text-primary fs-4">${score}%</span>
+            </div>
+            <div class="col-md-4 text-center">
+                <strong>Düzenleme Mesafesi</strong><br>
+                <span class="text-secondary fs-4">${data.levenshtein_distance}</span>
+            </div>
+            <div class="col-md-4 text-center">
+                <strong>Doğruluk</strong><br>
+                <span class="text-success fs-4">${data.accuracy_level}</span>
+            </div>
+        </div>
+    `;
+    
+    // Show tips if score is low
+    const tipsSection = document.getElementById('tipsSection');
+    if (tipsSection) {
+        if (score < 75) {
+            tipsSection.classList.remove('hidden');
+        } else {
+            tipsSection.classList.add('hidden');
+        }
+    } else {
+        console.warn('tipsSection not found, skipping tips display');
+    }
+    
+    // Trigger balloons effect for excellent scores
+    if (score >= 90) {
+        // Add balloons effect if you have it in your CSS/JS framework
+        setTimeout(() => {
+            // Simple celebration effect
+            document.body.style.animation = 'celebration 2s ease-in-out';
+        }, 500);
+    }
+    
+    console.log('displayResults completed successfully');
+}
+</script>
+{% endblock %}

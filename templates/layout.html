@@ -107,6 +107,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == url_for('word_pronunciation.index') %}active{% endif %}" 
+                           href="{{ url_for('word_pronunciation.index') }}">
+                            <i class="bi bi-mic me-1"></i>Telaffuz Çalışması
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">
                             <i class="bi bi-box-arrow-right me-1"></i>Çıkış
                         </a>

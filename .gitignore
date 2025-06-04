@@ -1,5 +1,6 @@
 # Environment variable file for API keys, etc.
 .env
+google_stt.json
 
 # Python virtual environment directory (your specific name)
 flask-therapy-app/
@@ -30,3 +31,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *~
+
+# test files
+*.wav
