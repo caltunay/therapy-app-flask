@@ -90,7 +90,7 @@ body::after {
 .container .row .col-xl-6 {
     background: rgba(239, 246, 255, 0.6);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 1rem;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(219, 234, 254, 0.3);
@@ -149,6 +149,11 @@ body::after {
 
 .card-body {
     padding: 2rem;
+}
+
+/* Reduced padding for word display card */
+.card-body.word-container {
+    padding: 0.5rem !important;
 }
 
 /* Staggered Animation for Multiple Cards */
@@ -408,23 +413,26 @@ body::after {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: 6px; /* Reduced default gap */
     margin: 20px 0;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
+    align-items: flex-start;
 }
 
 .word-group {
-    display: inline-flex;
+    display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 2px;
+    gap: 1px; /* Reduced default gap between letters */
+    max-width: 100%;
 }
 
 .letter {
     display: inline-block;
-    min-width: 1.2em;
-    height: 1.8em;
+    min-width: 0.5em !important;
+    height: 1.4em;
     text-align: center;
     font-size: 1.8rem;
     font-weight: 600;
@@ -433,35 +441,39 @@ body::after {
     font-family: 'Inter', monospace;
     cursor: pointer;
     transition: all 0.3s ease;
-    line-height: 1.2;
+    line-height: 1.1;
     background: rgba(255,255,255,0.8);
     border-radius: 8px 8px 0 0;
-    padding: 0 4px;
+    padding: 0 1px !important;
 }
 
 /* Dynamic font size classes for different word lengths */
 .word-display.font-xs .letter {
     font-size: 1.2rem;
-    min-width: 1em;
-    height: 1.5em;
+    min-width: 0.4em !important;
+    height: 1.2em;
+    padding: 0 1px !important;
 }
 
 .word-display.font-sm .letter {
     font-size: 1.4rem;
-    min-width: 1.1em;
-    height: 1.6em;
+    min-width: 0.45em !important;
+    height: 1.25em;
+    padding: 0 1px !important;
 }
 
 .word-display.font-md .letter {
     font-size: 1.6rem;
-    min-width: 1.15em;
-    height: 1.7em;
+    min-width: 0.5em !important;
+    height: 1.3em;
+    padding: 0 1px !important;
 }
 
 .word-display.font-lg .letter {
     font-size: 1.8rem;
-    min-width: 1.2em;
-    height: 1.8em;
+    min-width: 0.5em !important;
+    height: 1.4em;
+    padding: 0 1px !important;
 }
 
 .letter:hover {
@@ -470,9 +482,9 @@ body::after {
 }
 
 .letter.revealed {
-    background: linear-gradient(135deg, var(--success-color), #20c997);
-    color: white;
-    border-bottom: 3px solid var(--success-color);
+    background: linear-gradient(135deg, #86efac, #bbf7d0);
+    color: #065f46;
+    border-bottom: 3px solid #22c55e;
     cursor: default;
 }
 
@@ -618,6 +630,11 @@ h1, h2, h3, h4, h5, h6 {
         padding: 1.5rem;
     }
     
+    /* Even less padding for word display on mobile */
+    .card-body.word-container {
+        padding: 0.3rem !important;
+    }
+    
     .btn {
         font-size: 0.9rem;
         padding: 10px 20px;
@@ -636,10 +653,23 @@ h1, h2, h3, h4, h5, h6 {
         max-height: 250px;
     }
     
+    /* Word display adjustments for tablets/large phones */
+    .word-display {
+        gap: 4px;
+        justify-content: center;
+        align-items: flex-start;
+    }
+    
+    .word-group {
+        gap: 1px;
+        max-width: 100%;
+        flex-wrap: wrap;
+    }
+    
     /* Adjust blue container padding on mobile */
     .container .row .col-lg-8,
     .container .row .col-xl-6 {
-        padding: 1.5rem;
+        padding: 0.8rem;
         border-radius: 15px;
     }
 }
@@ -647,6 +677,11 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 576px) {
     .card-body {
         padding: 1rem;
+    }
+    
+    /* Minimal padding for word display on small mobile */
+    .card-body.word-container {
+        padding: 0.2rem !important;
     }
     
     .btn {
@@ -662,11 +697,73 @@ h1, h2, h3, h4, h5, h6 {
         max-height: 200px;
     }
     
+    /* More aggressive word display adjustments for small phones */
+    .word-display {
+        gap: 3px;
+        margin: 15px 0;
+        justify-content: center;
+        align-items: flex-start;
+    }
+    
+    .word-group {
+        gap: 0.5px;
+        max-width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
     /* Further adjust blue container on small mobile */
     .container .row .col-lg-8,
     .container .row .col-xl-6 {
-        padding: 1rem;
+        padding: 0.5rem;
         border-radius: 12px;
+    }
+}
+
+/* Additional breakpoint for better word handling on mobile */
+@media (max-width: 480px) {
+    /* Very compact word display for smaller screens */
+    .word-display {
+        gap: 2px;
+        margin: 10px 0;
+        justify-content: center;
+        align-items: flex-start;
+    }
+    
+    .word-group {
+        gap: 0;
+        max-width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* Enhanced font size adjustments for small screens */
+    .word-display.font-xs .letter {
+        font-size: 0.9rem;
+        min-width: 0.4em !important;
+        height: 1.3em;
+        padding: 0 1px !important;
+    }
+
+    .word-display.font-sm .letter {
+        font-size: 1rem;
+        min-width: 0.45em !important;
+        height: 1.35em;
+        padding: 0 1px !important;
+    }
+
+    .word-display.font-md .letter {
+        font-size: 1.1rem;
+        min-width: 0.5em !important;
+        height: 1.4em;
+        padding: 0 1px !important;
+    }
+
+    .word-display.font-lg .letter {
+        font-size: 1.2rem;
+        min-width: 0.5em !important;
+        height: 1.45em;
+        padding: 0 1px !important;
     }
 }
 
@@ -982,16 +1079,17 @@ button:disabled {
 
 .letter {
     display: inline-block;
-    width: 1.5em;
+    width: auto;
     text-align: center;
     font-size: 1.5em;
     font-weight: bold;
-    margin: 0 2px;
+    margin: 0 1px;
     color: #333; 
-    min-width: 1em;
+    min-width: 0.5em !important;
     border-bottom: 2px solid #333;
     box-sizing: content-box;
     font-family: 'Courier New', monospace;
+    padding: 0 1px !important;
 }
 
 .letter.revealed {
@@ -1579,8 +1677,46 @@ footer a {
     .navbar-brand {
         font-size: 0.85rem !important; /* Even smaller for very small screens */
         font-weight: 500 !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    }
+    
+    /* Ultra-aggressive word display for very small screens */
+    .word-display {
+        font-size: 0.9em;
+        letter-spacing: 0;
+        gap: 2px;
+    }
+    
+    .word-group {
+        gap: 0; /* No gap between letters on very small screens */
+    }
+    
+    /* Ultra-compact font sizes for very small screens */
+    .word-display.font-xs .letter {
+        font-size: 0.7rem;
+        min-width: 0.7em;
+        height: 1.1em;
+        padding: 0 1px;
+    }
+
+    .word-display.font-sm .letter {
+        font-size: 0.75rem;
+        min-width: 0.75em;
+        height: 1.15em;
+        padding: 0 1px;
+    }
+
+    .word-display.font-md .letter {
+        font-size: 0.8rem;
+        min-width: 0.8em;
+        height: 1.2em;
+        padding: 0 2px;
+    }
+
+    .word-display.font-lg .letter {
+        font-size: 0.85rem;
+        min-width: 0.85em;
+        height: 1.25em;
+        padding: 0 2px;
     }
     
     /* Ultra-compact icon for tiny screens */
@@ -1738,33 +1874,42 @@ footer a {
     }
     
     .word-display {
-        font-size: 1.3em; /* Further reduced for mobile */
-        letter-spacing: 1px; /* Reduced spacing for mobile */
+        font-size: 1.1em; /* Even more reduced for mobile */
+        letter-spacing: 0.5px; /* Minimal spacing for mobile */
+        gap: 4px; /* Reduced gap between word groups */
     }
     
-    /* Mobile responsive font size adjustments */
+    .word-group {
+        gap: 1px; /* Minimal gap between letters */
+    }
+    
+    /* Mobile responsive font size adjustments - more aggressive */
     .word-display.font-xs .letter {
-        font-size: 1rem;
-        min-width: 0.9em;
-        height: 1.3em;
+        font-size: 0.8rem;
+        min-width: 0.8em;
+        height: 1.2em;
+        padding: 0 2px;
     }
 
     .word-display.font-sm .letter {
-        font-size: 1.1rem;
-        min-width: 0.95em;
-        height: 1.4em;
+        font-size: 0.9rem;
+        min-width: 0.85em;
+        height: 1.3em;
+        padding: 0 2px;
     }
 
     .word-display.font-md .letter {
-        font-size: 1.2rem;
-        min-width: 1em;
-        height: 1.5em;
+        font-size: 1rem;
+        min-width: 0.9em;
+        height: 1.4em;
+        padding: 0 3px;
     }
 
     .word-display.font-lg .letter {
-        font-size: 1.3rem;
-        min-width: 1.05em;
-        height: 1.6em;
+        font-size: 1.1rem;
+        min-width: 0.95em;
+        height: 1.5em;
+        padding: 0 3px;
     }
     
     .instructions {
