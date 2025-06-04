@@ -141,11 +141,18 @@
     document.querySelectorAll('.word-box').forEach(box => {
         box.addEventListener('click', function() {
             const selectedWord = this.getAttribute('data-word');
+            const sentenceElement = document.querySelector('.sentence-container p');
+            
             if ("{{ difficulty }}" === "zor") {
                 if (selectedWord === hiddenWord) {
                     showMessage('<p class="success-message">Tebrikler! Doğru kelimeyi buldunuz.</p>');
                     this.style.backgroundColor = "#4CAF50";
                     this.style.color = "white";
+                    
+                    // Update sentence to show the complete word
+                    const originalSentence = document.getElementById('original-sentence').value;
+                    sentenceElement.textContent = originalSentence;
+                    
                     document.querySelectorAll('.word-box').forEach(b => {
                         b.style.pointerEvents = "none";
                     });
@@ -168,6 +175,11 @@
                     showMessage('<p class="success-message">Tebrikler! Doğru kelimeyi buldunuz.</p>');
                     this.style.backgroundColor = "#4CAF50";
                     this.style.color = "white";
+                    
+                    // Update sentence to show the complete word
+                    const originalSentence = document.getElementById('original-sentence').value;
+                    sentenceElement.textContent = originalSentence;
+                    
                     document.querySelectorAll('.word-box').forEach(b => {
                         b.style.pointerEvents = "none";
                     });

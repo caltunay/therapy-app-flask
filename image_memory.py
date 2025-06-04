@@ -27,17 +27,21 @@ def index():
     settings = DIFFICULTY_SETTINGS[difficulty]
     num_images = settings['num_images']
     
-    # Get random entries for images
+    # Get unique random entries for images (without replacement)
     original_images = []
-    for _ in range(num_images):
+    used_s3_keys = set()  # Track used s3_keys to avoid duplicates
+    
+    while len(original_images) < num_images:
         item = get_random_entry()
-        if item:
+        if item and item.get('s3_key', '') not in used_s3_keys:
+            s3_key = item.get('s3_key', '')
             image_data = {
-                's3_key': item.get('s3_key', ''),
+                's3_key': s3_key,
                 'tr_word': item.get('tr_word', ''),
-                'image_url': get_image_url(item.get('s3_key', ''))
+                'image_url': get_image_url(s3_key)
             }
             original_images.append(image_data)
+            used_s3_keys.add(s3_key)
     
     # Store original images in session
     session['original_images'] = original_images

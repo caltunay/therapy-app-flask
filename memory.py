@@ -26,8 +26,8 @@ def index():
     settings = DIFFICULTY_SETTINGS[difficulty]
     num_boxes = settings['num_boxes']
     
-    # Generate random numbers for each box (0-100)
-    original_numbers = [random.randint(0, 100) for _ in range(num_boxes)]
+    # Generate unique random numbers for each box (0-100) without replacement
+    original_numbers = random.sample(range(0, 101), num_boxes)
     
     # Store original numbers in session
     session['original_numbers'] = original_numbers
