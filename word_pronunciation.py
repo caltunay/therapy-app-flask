@@ -4,15 +4,10 @@ import random
 from Levenshtein import distance as levenshtein_distance
 from google.cloud import speech
 from auth_service import login_required
+from data_services import get_random_entry, get_random_sentence
 
 # Create blueprint
 word_pronunciation_bp = Blueprint('word_pronunciation', __name__, url_prefix='/word-pronunciation')
-
-# Test sentences
-TEST_SENTENCES = [
-    'Psikolojik dayanıklılık zorluklarla başa çıkmayı sağlar.',
-    'Çevre kirliliği birçok türün neslini tehdit ediyor.'
-]
 
 # Set up Google Cloud credentials
 credentials_path = 'google_stt.json'
@@ -127,20 +122,59 @@ def calculate_pronunciation_score(expected_text, transcribed_text):
 @login_required
 def index():
     """Main word pronunciation page"""
-    # Get a random sentence
-    random_sentence = random.choice(TEST_SENTENCES)
-    session['current_sentence'] = random_sentence
+    # Get mode from query parameters (default to 'kelime')
+    mode = request.args.get('mode', 'kelime')
     
-    return render_template('word_pronunciation.html', sentence=random_sentence)
+    # Get content based on mode
+    if mode == 'cumle':
+        # Get random sentence
+        sentence_data = get_random_sentence()
+        content = sentence_data.get('sentence', '') if sentence_data else 'Cümle bulunamadı'
+        content_type = 'sentence'
+    else:
+        # Get random word (default mode)
+        word_data = get_random_entry()
+        content = word_data.get('tr_word', '') if word_data else 'Kelime bulunamadı'
+        content_type = 'word'
+    
+    # Store in session
+    session['current_content'] = content
+    session['current_mode'] = mode
+    session['content_type'] = content_type
+    
+    return render_template('word_pronunciation.html', 
+                         content=content, 
+                         mode=mode, 
+                         content_type=content_type)
 
-@word_pronunciation_bp.route('/get-random-sentence', methods=['POST'])
+@word_pronunciation_bp.route('/get-random-content', methods=['POST'])
 @login_required
-def get_random_sentence():
-    """Get a new random sentence"""
-    random_sentence = random.choice(TEST_SENTENCES)
-    session['current_sentence'] = random_sentence
+def get_random_content():
+    """Get new random content based on current mode"""
+    mode = request.json.get('mode', 'kelime')
     
-    return jsonify({'sentence': random_sentence})
+    # Get content based on mode
+    if mode == 'cumle':
+        # Get random sentence
+        sentence_data = get_random_sentence()
+        content = sentence_data.get('sentence', '') if sentence_data else 'Cümle bulunamadı'
+        content_type = 'sentence'
+    else:
+        # Get random word
+        word_data = get_random_entry()
+        content = word_data.get('tr_word', '') if word_data else 'Kelime bulunamadı'
+        content_type = 'word'
+    
+    # Store in session
+    session['current_content'] = content
+    session['current_mode'] = mode
+    session['content_type'] = content_type
+    
+    return jsonify({
+        'content': content, 
+        'mode': mode, 
+        'content_type': content_type
+    })
 
 @word_pronunciation_bp.route('/assess-pronunciation', methods=['POST'])
 @login_required
@@ -155,10 +189,10 @@ def assess_pronunciation():
         if audio_file.filename == '':
             return jsonify({'error': 'Ses dosyası seçilmedi'}), 400
         
-        # Get the current sentence
-        expected_sentence = session.get('current_sentence')
-        if not expected_sentence:
-            return jsonify({'error': 'Karşılaştırılacak cümle yok'}), 400
+        # Get the current content (word or sentence)
+        expected_content = session.get('current_content')
+        if not expected_content:
+            return jsonify({'error': 'Karşılaştırılacak içerik yok'}), 400
         
         # Read audio data
         audio_data = audio_file.read()
@@ -171,7 +205,7 @@ def assess_pronunciation():
         print(f"Transcript result: '{transcript}'")
         
         # Calculate similarity score
-        score_data = calculate_pronunciation_score(expected_sentence, transcript)
+        score_data = calculate_pronunciation_score(expected_content, transcript)
         
         # Determine accuracy level
         score = score_data['similarity_percentage']
@@ -190,7 +224,7 @@ def assess_pronunciation():
         
         return jsonify({
             'transcript': transcript,
-            'expected': expected_sentence,
+            'expected': expected_content,
             'score': score,
             'accuracy_level': accuracy_level,
             'message': message,
@@ -202,3 +236,5 @@ def assess_pronunciation():
         import traceback
         traceback.print_exc()
         return jsonify({'error': f'Ses işleme hatası: {str(e)}'}), 500
+
+

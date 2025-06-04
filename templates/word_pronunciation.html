@@ -134,6 +134,23 @@
         margin-bottom: 1rem;
     }
     
+    .comparison-label {
+        font-size: 0.25rem !important;
+        font-weight: 100 !important;
+        color: white !important;
+        background-color: #6c757d !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 0.375rem !important;
+        display: inline-block !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .comparison-word {
+        font-size: 1.5rem !important;
+        font-weight: 600 !important;
+        color: #2c3e50 !important;
+    }
+    
     .loading-spinner {
         display: none;
         text-align: center;
@@ -162,11 +179,33 @@
         </div>
     </div>
     
-    <!-- Sentence Card -->
+    <!-- Mode Slider Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-3 text-center">
+                    <small class="text-muted">Kelime</small>
+                </div>
+                <div class="col-6">
+                    <input type="range" min="0" max="1" 
+                           value="{% if mode == 'kelime' %}0{% else %}1{% endif %}" 
+                           id="mode-slider" class="form-range">
+                </div>
+                <div class="col-3 text-center">
+                    <small class="text-muted">Cümle</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Card -->
     <div class="sentence-card">
-        <div class="sentence-text" id="currentSentence">{{ sentence }}</div>
-        <button class="btn btn-outline-light btn-sm" onclick="getNewSentence()">
-            🎲 Sonraki Cümleyi Getir
+        <div class="sentence-text" id="currentContent">{{ content }}</div>
+        <!-- <small class="text-light mb-2 d-block">
+            {% if content_type == 'word' %}Kelimeyi telaffuz edin{% else %}Cümleyi telaffuz edin{% endif %}
+        </small> -->
+        <button class="btn btn-outline-light btn-sm" onclick="getNewContent()">
+            🎲 {% if content_type == 'word' %}Sonraki Kelimeyi Getir{% else %}Sonraki Cümleyi Getir{% endif %}
         </button>
     </div>
     
@@ -209,7 +248,7 @@
         </div>
         
         <div id="tipsSection" class="tips-section hidden">
-            <h5>💡 Gelişim için ipuçları:</h5>
+            <h5 style="color: #2c3e50;">💡 Gelişim için ipuçları:</h5>
             <ul>
                 <li>Daha yavaş ve net konuşun</li>
                 <li>Her heceyi telaffuz etmeye odaklanın</li>
@@ -224,24 +263,61 @@
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let currentMode = '{{ mode }}';
 
-function getNewSentence() {
-    fetch('/word-pronunciation/get-random-sentence', {
+// Mode slider functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const modeSlider = document.getElementById('mode-slider');
+    
+    modeSlider.addEventListener('change', function() {
+        const newMode = this.value == '0' ? 'kelime' : 'cumle';
+        if (newMode !== currentMode) {
+            currentMode = newMode;
+            getNewContent();
+            // Update URL to reflect mode change
+            const url = new URL(window.location);
+            url.searchParams.set('mode', newMode);
+            window.history.pushState({}, '', url);
+        }
+    });
+});
+
+function getNewContent() {
+    fetch('/word-pronunciation/get-random-content', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ mode: currentMode })
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById('currentSentence').textContent = data.sentence;
-        // Hide results when getting new sentence
+        document.getElementById('currentContent').textContent = data.content;
+        currentMode = data.mode;
+        
+        // Update button text based on content type
+        const button = document.querySelector('.sentence-card button');
+        const instruction = document.querySelector('.sentence-card small');
+        
+        if (data.content_type === 'word') {
+            button.innerHTML = '🎲 Sonraki Kelimeyi Getir';
+            if (instruction) {
+                instruction.textContent = 'Kelimeyi telaffuz edin';
+            }
+        } else {
+            button.innerHTML = '🎲 Sonraki Cümleyi Getir';
+            if (instruction) {
+                instruction.textContent = 'Cümleyi telaffuz edin';
+            }
+        }
+        
+        // Hide results when getting new content
         document.getElementById('resultsSection').classList.add('hidden');
         document.getElementById('audioSection').classList.add('hidden');
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Yeni cümle alırken hata oluştu');
+        alert('Yeni içerik alırken hata oluştu');
     });
 }
 
@@ -449,10 +525,9 @@ function displayResults(data) {
     
     scoreDisplay.innerHTML = `
         <div class="score-circle ${scoreClass}">
-            ${Math.round(score)}%
+            %${Math.round(score)}
         </div>
-        <h4>${scoreIcon} ${data.message}</h4>
-        <p class="text-muted">Doğruluk Seviyesi: ${data.accuracy_level}</p>
+        <h4 style="color: #2c3e50;">${scoreIcon} ${data.message}</h4>
     `;
     
     const comparisonSection = document.getElementById('comparisonSection');
@@ -463,33 +538,18 @@ function displayResults(data) {
     }
     
     comparisonSection.innerHTML = `
-        <h5>📊 Detaylı Analiz</h5>
         <div class="row">
             <div class="col-md-6">
                 <div class="text-comparison">
-                    <strong>Beklenen:</strong><br>
-                    "${data.expected}"
+                    <span class="comparison-label">Beklenen:</span><br>
+                    <span class="comparison-word">${data.expected.charAt(0).toUpperCase() + data.expected.slice(1)}</span>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="text-comparison">
-                    <strong>Söylediğiniz:</strong><br>
-                    "${data.transcript}"
+                    <span class="comparison-label">Söylediğiniz:</span><br>
+                    <span class="comparison-word">${data.transcript.charAt(0).toUpperCase() + data.transcript.slice(1)}</span>
                 </div>
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-4 text-center">
-                <strong>Benzerlik Puanı</strong><br>
-                <span class="text-primary fs-4">${score}%</span>
-            </div>
-            <div class="col-md-4 text-center">
-                <strong>Düzenleme Mesafesi</strong><br>
-                <span class="text-secondary fs-4">${data.levenshtein_distance}</span>
-            </div>
-            <div class="col-md-4 text-center">
-                <strong>Doğruluk</strong><br>
-                <span class="text-success fs-4">${data.accuracy_level}</span>
             </div>
         </div>
     `;
@@ -517,5 +577,7 @@ function displayResults(data) {
     
     console.log('displayResults completed successfully');
 }
+
+
 </script>
 {% endblock %}
