@@ -10,8 +10,10 @@ from data_services import get_random_entry, get_random_sentence
 word_pronunciation_bp = Blueprint('word_pronunciation', __name__, url_prefix='/word-pronunciation')
 
 # Set up Google Cloud credentials
-credentials_path = 'google_stt.json'
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+if os.environ.get('LOCAL'):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_stt.json'
+else:
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/etc/secrets/google_stt.json'
 
 # Initialize Google Speech client (cached)
 _speech_client = None
