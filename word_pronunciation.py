@@ -95,7 +95,7 @@ def try_fallback_configs(client, audio):
             continue
     
     # If all attempts fail, return error message
-    return "Konuşma algılanamadı - lütfen sessiz bir ortamda tekrar kayıt yapmayı deneyin"
+    return "Kayıt yapılamadı, lütfen tekrar deneyin"
 
 def calculate_pronunciation_score(expected_text, transcribed_text):
     """Calculate pronunciation similarity using Levenshtein distance"""
@@ -205,6 +205,12 @@ def assess_pronunciation():
         # Transcribe the audio
         transcript = transcribe_audio(audio_data)
         print(f"Transcript result: '{transcript}'")
+        
+        # Check if transcription failed
+        if transcript == "Kayit yapilamadi, lutfen tekrar deneyin":
+            return jsonify({
+                'error': transcript
+            }), 400
         
         # Calculate similarity score
         score_data = calculate_pronunciation_score(expected_content, transcript)

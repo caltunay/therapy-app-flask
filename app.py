@@ -11,6 +11,7 @@ from bosluk import bosluk_bp
 from memory import memory_bp
 from image_memory import image_memory_bp
 from word_pronunciation import word_pronunciation_bp
+from pronunciation_game import pronunciation_game_bp
 from data_services import get_random_entry, get_image_url
 from auth_service import auth_service, login_required
 
@@ -27,6 +28,7 @@ app.register_blueprint(bosluk_bp)
 app.register_blueprint(memory_bp)
 app.register_blueprint(image_memory_bp)
 app.register_blueprint(word_pronunciation_bp)
+app.register_blueprint(pronunciation_game_bp)
 
 # Context processor to make environment variables available to all templates
 @app.context_processor
@@ -256,6 +258,10 @@ def pronounce():
     tr_word = session.get('tr_word', '')
     if not tr_word:
         return ('', 404)
+    
+    # Cache-busting parameter is ignored but helps prevent browser caching
+    _ = request.args.get('t')  # timestamp parameter for cache-busting
+    
     tts = gTTS(text=tr_word, lang='tr', slow=True)
     mp3_fp = BytesIO()
     tts.write_to_fp(mp3_fp)

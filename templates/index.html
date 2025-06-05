@@ -208,7 +208,9 @@
 
     // Pronunciation button functionality
     pronounceBtn.addEventListener('click', function() {
-        fetch('/pronounce')
+        // Add cache-busting parameter to ensure fresh audio
+        const timestamp = new Date().getTime();
+        fetch(`/pronounce?t=${timestamp}`)
             .then(response => response.blob())  
             .then(blob => {
                 const url = URL.createObjectURL(blob);

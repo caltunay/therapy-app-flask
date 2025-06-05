@@ -59,11 +59,6 @@
         <!-- Audio Player (hidden initially) -->
         <div id="audioSection" class="audio-controls hidden">
             <audio id="audioPlayer" controls class="mb-3" style="width: 100%;"></audio>
-            <div>
-                <button class="btn btn-primary-custom btn-custom" onclick="assessPronunciation()">
-                    🎯 Telaffuzu Değerlendir
-                </button>
-            </div>
         </div>
         
         <!-- Loading Spinner -->
@@ -168,6 +163,9 @@ function toggleRecording() {
 }
 
 function startRecording() {
+    // Hide any previous results when starting a new recording
+    document.getElementById('resultsSection').classList.add('hidden');
+    
     navigator.mediaDevices.getUserMedia({ 
         audio: {
             sampleRate: 16000,
@@ -216,6 +214,11 @@ function startRecording() {
                 
                 // Stop all tracks to release microphone
                 stream.getTracks().forEach(track => track.stop());
+                
+                // Automatically assess pronunciation after recording
+                setTimeout(() => {
+                    assessPronunciation();
+                }, 500); // Small delay to ensure UI updates complete
             };
             
             mediaRecorder.start(1000); // Collect data every 1 second
@@ -242,7 +245,8 @@ function stopRecording() {
         recordButton.classList.remove('recording');
         recordButton.innerHTML = '<i class="bi bi-mic-fill"></i>';
         
-        document.getElementById('recordingStatus').textContent = 'Kayıt tamamlandı! Tekrar kayıt yapmak için tıklayın';
+        // Clear the recording status while analysis is happening
+        document.getElementById('recordingStatus').textContent = '';
     }
 }
 
@@ -304,6 +308,8 @@ function assessPronunciation() {
         if (data.error) {
             console.error('Server returned error:', data.error);
             alert('Hata: ' + data.error);
+            // Reset recording status on error
+            document.getElementById('recordingStatus').textContent = 'Tekrar kayıt yapmak için tıklayın';
             return;
         }
         
@@ -320,6 +326,8 @@ function assessPronunciation() {
         document.getElementById('loadingSpinner').style.display = 'none';
         console.error('Error:', error);
         alert('Ses işlenirken hata');
+        // Reset recording status on error
+        document.getElementById('recordingStatus').textContent = 'Tekrar kayıt yapmak için tıklayın';
     });
 }
 
@@ -414,6 +422,9 @@ function displayResults(data) {
     }
     
     console.log('displayResults completed successfully');
+    
+    // Update recording status after evaluation
+    document.getElementById('recordingStatus').textContent = 'Tekrar kayıt yapmak için tıklayın';
 }
 
 

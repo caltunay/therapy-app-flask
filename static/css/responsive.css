@@ -33,7 +33,7 @@
     }
     
     .word-group {
-        gap: 1px;
+        gap: 2px;
     }
     
     .container .row .col-lg-8,
@@ -72,7 +72,7 @@
     }
     
     .word-group {
-        gap: 0.5px;
+        gap: 2px;
     }
     
     .container .row .col-lg-8,
@@ -98,36 +98,40 @@
 /* Small mobile breakpoint */
 @media (max-width: 480px) {
     .word-display {
-        gap: 2px;
+        gap: 3px;
         margin: 10px 0;
     }
     
     .word-group {
-        gap: 0;
+        gap: 2px;
     }
     
     .word-display.font-xs .letter {
         font-size: 0.9rem;
         min-width: 0.4em !important;
         height: 1.3em;
+        margin: 0 1px; /* Ensure spacing on small screens */
     }
 
     .word-display.font-sm .letter {
         font-size: 1rem;
         min-width: 0.45em !important;
         height: 1.35em;
+        margin: 0 1px; /* Ensure spacing on small screens */
     }
 
     .word-display.font-md .letter {
         font-size: 1.1rem;
         min-width: 0.5em !important;
         height: 1.4em;
+        margin: 0 1px; /* Ensure spacing on small screens */
     }
 
     .word-display.font-lg .letter {
         font-size: 1.2rem;
         min-width: 0.5em !important;
         height: 1.45em;
+        margin: 0 1px; /* Ensure spacing on small screens */
     }
 }
 

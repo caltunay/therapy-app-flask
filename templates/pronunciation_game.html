@@ -1,0 +1,249 @@
+{% extends "layout.html" %}
+
+{% block title %}Telaffuz Oyunu - Terapi Uygulaması{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="pronunciation-container">
+    <!-- Header Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body text-center header-bg">
+            <h1 class="card-title mb-0">
+                <i class="bi bi-volume-up me-2"></i>Telaffuz Oyunu
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Mode Slider Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-3 text-center">
+                    <small class="text-muted">Kelime</small>
+                </div>
+                <div class="col-6">
+                    <input type="range" min="0" max="1" 
+                           value="{% if mode == 'kelime' %}0{% else %}1{% endif %}" 
+                           id="mode-slider" class="form-range">
+                </div>
+                <div class="col-3 text-center">
+                    <small class="text-muted">Cümle</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Card -->
+    <div class="sentence-card">
+        <!-- <div class="sentence-text" id="currentContent">{{ content }}</div> -->
+        <button class="btn btn-outline-light btn-sm" id="next-content-btn">
+            🎲 <span id="next-btn-text">{% if content_type == 'word' %}Sonraki Kelimeyi Getir{% else %}Sonraki Cümleyi Getir{% endif %}</span>
+        </button>
+    </div>
+
+    <!-- Listen Button Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body text-center">
+            <button id="pronounce-btn" class="btn btn-info btn-lg">
+                <i class="bi bi-play-circle me-2"></i>Dinle
+            </button>
+        </div>
+    </div>
+
+    <!-- Word Guess Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body">
+            <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap">
+                <input type="text" id="content-guess-input" class="form-control" 
+                       placeholder="{% if content_type == 'word' %}Kelimeyi yazın...{% else %}Cümleyi yazın...{% endif %}" 
+                       style="max-width: 300px;">
+                <button id="guess-content-btn" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Kontrol Et
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Player (for pronunciation only) -->
+    <audio id="audio-player" style="display: none;">
+        Tarayıcınız ses çalmayı desteklemiyor.
+    </audio>
+
+    <!-- Message Area -->
+    <div id="message-area" class="text-center mb-3" style="display: none;">
+        <!-- Messages will be displayed here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentMode = '{{ mode }}';
+    let currentContentType = '{{ content_type }}';
+    
+    // Mode slider functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const modeSlider = document.getElementById('mode-slider');
+        
+        modeSlider.addEventListener('change', function() {
+            const newMode = this.value == '0' ? 'kelime' : 'cumle';
+            if (newMode !== currentMode) {
+                currentMode = newMode;
+                getNewContent(true); // Pass true to indicate we should auto-play
+                // Update URL to reflect mode change
+                const url = new URL(window.location);
+                url.searchParams.set('mode', newMode);
+                window.history.pushState({}, '', url);
+            }
+        });
+    });
+    
+    // Helper function to show/hide message area
+    function showMessage(html) {
+        const messageArea = document.getElementById('message-area');
+        messageArea.innerHTML = html;
+        messageArea.style.display = 'block';
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            hideMessage();
+        }, 3000);
+    }
+    
+    function hideMessage() {
+        const messageArea = document.getElementById('message-area');
+        messageArea.innerHTML = '';
+        messageArea.style.display = 'none';
+    }
+    
+    // Get new content
+    function getNewContent(autoPlay = false) {
+        fetch('/pronunciation-game/get-new-content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ mode: currentMode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update current mode and content type
+            currentMode = data.mode;
+            currentContentType = data.content_type;
+            
+            // Update UI elements based on content type
+            updateUIForContentType(data.content_type);
+            
+            // Clear input and hide any messages
+            document.getElementById('content-guess-input').value = '';
+            hideMessage();
+            
+            // Auto-play the new content if requested
+            if (autoPlay) {
+                console.log('Auto-play requested, calling pronounceContent...');
+                // Add a small delay to ensure the content is properly loaded
+                setTimeout(() => {
+                    pronounceContent();
+                }, 100);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('<div class="alert alert-danger">Yeni içerik alırken hata oluştu</div>');
+        });
+    }
+    
+    // Update UI elements based on content type
+    function updateUIForContentType(contentType) {
+        const nextBtnText = document.getElementById('next-btn-text');
+        const guessInput = document.getElementById('content-guess-input');
+        
+        if (contentType === 'word') {
+            nextBtnText.textContent = 'Sonraki Kelimeyi Getir';
+            guessInput.placeholder = 'Kelimeyi yazın...';
+        } else {
+            nextBtnText.textContent = 'Sonraki Cümleyi Getir';
+            guessInput.placeholder = 'Cümleyi yazın...';
+        }
+    }
+    
+    // Content guess functionality
+    function guessContent() {
+        const userGuess = document.getElementById('content-guess-input').value.trim();
+        
+        // Clear any previous messages
+        hideMessage();
+        
+        if (!userGuess) {
+            showMessage('<div class="alert alert-warning">Lütfen bir tahmin girin!</div>');
+            return;
+        }
+        
+        fetch('/pronunciation-game/guess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ guess: userGuess })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('<div class="alert alert-success">Tebrikler! Doğru cevap: ' + data.correct_answer + '</div>');
+                // Clear the input
+                document.getElementById('content-guess-input').value = '';
+            } else {
+                showMessage('<div class="alert alert-danger">Yanlış tahmin! Tekrar deneyin.</div>');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('<div class="alert alert-danger">Tahmin kontrol edilirken hata oluştu</div>');
+        });
+    }
+    
+    // Pronounce content
+    function pronounceContent() {
+        console.log('pronounceContent called');
+        // Add cache-busting parameter to ensure fresh audio
+        const timestamp = new Date().getTime();
+        const pronunciationUrl = `/pronunciation-game/pronounce?t=${timestamp}`;
+        const audioPlayer = document.getElementById('audio-player');
+        
+        console.log('Setting audio source:', pronunciationUrl);
+        // Set audio source and play directly
+        audioPlayer.src = pronunciationUrl;
+        
+        // Play audio
+        audioPlayer.play().then(() => {
+            console.log('Audio played successfully');
+        }).catch(error => {
+            console.error('Audio play error:', error);
+            // Don't show error message during auto-play on page load to avoid double errors
+            if (!document.querySelector('#message-area .alert')) {
+                showMessage('<div class="alert alert-warning">Ses çalarken hata oluştu</div>');
+            }
+        });
+    }
+    
+    // Event listeners
+    document.getElementById('pronounce-btn').addEventListener('click', pronounceContent);
+    document.getElementById('next-content-btn').addEventListener('click', function() {
+        getNewContent(true); // Auto-play when getting next content
+    });
+    document.getElementById('guess-content-btn').addEventListener('click', guessContent);
+    
+    // Allow Enter key to submit guess
+    document.getElementById('content-guess-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            guessContent();
+        }
+    });
+    
+    // Initialize UI based on current content type
+    updateUIForContentType(currentContentType);
+</script>
+{% endblock %}

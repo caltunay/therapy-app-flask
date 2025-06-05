@@ -3,7 +3,7 @@
 {% block title %}Boşluk Doldurmaca{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center bosluk-game">
     <div class="col-lg-8 col-xl-6">
         <!-- Header Card -->
         <div class="card shadow-sm mb-4 fade-in">
@@ -38,11 +38,6 @@
 
         <!-- Sentence Card -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0 text-center">
-                    <i class="bi bi-chat-quote me-2"></i>Cümle
-                </h5>
-            </div>
             <div class="card-body">
                 <div class="sentence-container text-center">
                     <p class="fs-5 lh-lg">{{ sentence }}</p>
@@ -54,16 +49,11 @@
         <!-- Word Boxes Card -->
         {% if word_boxes %}
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0 text-center">
-                    <i class="bi bi-collection me-2"></i>Kelime Seçenekleri
-                </h5>
-            </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-center gap-2">
                     {% for word in word_boxes %}
                         <button class="btn btn-outline-primary word-box" 
-                                data-word="{{ original_word if difficulty == 'zor' and loop.index0 == 0 else word }}">
+                                data-word="{{ word }}">
                             {% if difficulty == 'zor' %}
                                 {{ word }}
                             {% else %}
@@ -92,7 +82,7 @@
         <div class="row g-3">
             <!-- Recording Card -->
             <div class="col-md-6">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm h-100 audio-control-card">
                     <div class="card-body text-center">
                         <button id="record-toggle-btn" class="btn btn-danger mb-2">
                             <i class="bi bi-record-circle me-1"></i>Telaffuzunu Kaydet
@@ -104,7 +94,7 @@
 
             <!-- Pronunciation Card -->
             <div class="col-md-6">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm h-100 audio-control-card">
                     <div class="card-body text-center">
                         <button id="pronounce-sentence-btn" class="btn btn-info mb-2">
                             <i class="bi bi-play-circle me-1"></i>Cümleyi Dinle
