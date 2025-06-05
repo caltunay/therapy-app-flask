@@ -1,0 +1,12 @@
+/* Main CSS file for Therapy App - Modular imports */
+
+/* Import all CSS modules in order */
+@import url('css/variables.css');
+@import url('css/base.css');
+@import url('css/layout.css');
+@import url('css/typography.css');
+@import url('css/components.css');
+@import url('css/games.css');
+@import url('css/animations.css');
+@import url('css/responsive.css');
+@import url('css/utilities.css');

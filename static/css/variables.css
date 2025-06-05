@@ -1,0 +1,18 @@
+/* CSS Variables for Therapy App */
+:root {
+    --primary-color: #6b7280;
+    --primary-dark: #4b5563;
+    --secondary-color: #9ca3af;
+    --success-color: #059669;
+    --info-color: #0891b2;
+    --warning-color: #d97706;
+    --danger-color: #dc2626;
+    --light-color: #f9fafb;
+    --dark-color: #374151;
+    --surface-color: #ffffff;
+    --gradient-primary: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}

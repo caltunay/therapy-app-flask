@@ -1,0 +1,46 @@
+/* Typography styles for Therapy App */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--dark-color);
+}
+
+.display-1 {
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-color), #6b7280);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Comparison labels for pronunciation */
+.comparison-label {
+    font-size: .75rem !important;
+    font-weight: 200 !important;
+    color: white !important;
+    background-color: #6c757d !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 1rem !important;
+    display: inline-block !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.comparison-word {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    color: #2c3e50 !important;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--dark-color);
+}
+
+.display-1 {
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-color), #6b7280);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

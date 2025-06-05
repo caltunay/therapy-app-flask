@@ -1,0 +1,154 @@
+/* Responsive styles for Therapy App */
+
+/* Tablet breakpoint */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-body.word-container {
+        padding: 0.3rem !important;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 10px 20px;
+    }
+    
+    .btn-lg {
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .main-image {
+        max-height: 250px;
+    }
+    
+    .word-display {
+        gap: 4px;
+    }
+    
+    .word-group {
+        gap: 1px;
+    }
+    
+    .container .row .col-lg-8,
+    .container .row .col-xl-6 {
+        padding: 0.8rem;
+        border-radius: 15px;
+    }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-body.word-container {
+        padding: 0.2rem !important;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 8px 16px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .main-image {
+        max-height: 200px;
+    }
+    
+    .word-display {
+        gap: 3px;
+        margin: 15px 0;
+    }
+    
+    .word-group {
+        gap: 0.5px;
+    }
+    
+    .container .row .col-lg-8,
+    .container .row .col-xl-6 {
+        padding: 0.5rem;
+        border-radius: 12px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem !important;
+        font-weight: 600;
+    }
+    
+    .navbar {
+        padding: 0.25rem 0.5rem !important;
+    }
+    
+    .navbar .container-fluid {
+        padding: 0 0.25rem !important;
+    }
+}
+
+/* Small mobile breakpoint */
+@media (max-width: 480px) {
+    .word-display {
+        gap: 2px;
+        margin: 10px 0;
+    }
+    
+    .word-group {
+        gap: 0;
+    }
+    
+    .word-display.font-xs .letter {
+        font-size: 0.9rem;
+        min-width: 0.4em !important;
+        height: 1.3em;
+    }
+
+    .word-display.font-sm .letter {
+        font-size: 1rem;
+        min-width: 0.45em !important;
+        height: 1.35em;
+    }
+
+    .word-display.font-md .letter {
+        font-size: 1.1rem;
+        min-width: 0.5em !important;
+        height: 1.4em;
+    }
+
+    .word-display.font-lg .letter {
+        font-size: 1.2rem;
+        min-width: 0.5em !important;
+        height: 1.45em;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --dark-color: #f8fafc;
+        --surface-color: #1e293b;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    footer,
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+}

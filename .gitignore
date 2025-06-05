@@ -31,7 +31,12 @@ Thumbs.db
 # Temporary files
 *.tmp
 *~
+
+# CSS redo
 styles_clean.css
+CSS_MODULARIZATION.md
+verify_css.py
+styles_original.css
 
 # test files
 *.wav

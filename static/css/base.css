@@ -1,0 +1,28 @@
+/* Base styles for Therapy App */
+html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 80%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(209, 213, 219, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}

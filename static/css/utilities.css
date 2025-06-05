@@ -1,0 +1,27 @@
+/* Utility classes and accessibility for Therapy App */
+
+/* Utility classes */
+.hidden { 
+    display: none; 
+}
+
+.loading-spinner {
+    display: none;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.tips-section {
+    background: #e3f2fd;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Accessibility */
+.btn:focus-visible,
+.form-range:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
