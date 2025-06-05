@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os 
 from gtts import gTTS
 from io import BytesIO
+from Levenshtein import distance as levenshtein_distance
 
 # Import the blueprints and services
 from breathing import breathing_bp
@@ -267,6 +268,76 @@ def pronounce():
     tts.write_to_fp(mp3_fp)
     mp3_fp.seek(0)
     return send_file(mp3_fp, mimetype='audio/mpeg')
+
+def calculate_word_guess_score(expected_text, guess_text):
+    """Calculate word guess similarity using Levenshtein distance"""
+    # Normalize texts (lowercase, strip whitespace)
+    expected = expected_text.lower().strip()
+    guess = guess_text.lower().strip()
+    
+    # Calculate Levenshtein distance
+    distance = levenshtein_distance(expected, guess)
+    
+    # Calculate similarity as percentage
+    max_length = max(len(expected), len(guess))
+    if max_length == 0:
+        return 100.0
+    
+    similarity_percentage = (1 - distance / max_length) * 100
+    
+    return {
+        'similarity_percentage': round(similarity_percentage, 1),
+        'levenshtein_distance': distance,
+        'expected_length': len(expected),
+        'guess_length': len(guess)
+    }
+
+@app.route('/word-guess', methods=['POST'])
+@login_required
+def word_guess():
+    """Check user's word guess using Levenshtein distance"""
+    data = request.get_json()
+    user_guess = data.get('guess', '').strip()
+    tr_word = session.get('tr_word', '')
+    
+    if not user_guess:
+        return jsonify({'error': 'Lütfen bir kelime girin!'}), 400
+    
+    if not tr_word:
+        return jsonify({'error': 'Karşılaştırılacak kelime yok'}), 400
+    
+    # Calculate similarity score
+    score_data = calculate_word_guess_score(tr_word, user_guess)
+    score = score_data['similarity_percentage']
+    
+    # Determine message based on score (same as pronunciation game)
+    if score >= 90:
+        message = "🎉 Harika! Çok güzel bir tahmin!"
+        is_correct = True
+    elif score >= 75:
+        message = "👍 Çok iyi! Güzel ilerliyorsunuz!"
+        is_correct = True
+    elif score >= 60:
+        message = "👌 Güzel! Her seferinde daha da iyileşiyorsunuz!"
+        is_correct = False
+    else:
+        message = "💪 Harika bir başlangıç! Her deneme sizi ileriye taşıyor!"
+        is_correct = False
+    
+    # If score is high enough, reveal the word
+    if is_correct:
+        session['revealed_indices'] = list(range(len(tr_word)))
+        session['censored'] = tr_word
+    
+    return jsonify({
+        'guess': user_guess,
+        'expected': tr_word,
+        'score': round(score),
+        'message': message,
+        'is_correct': is_correct,
+        'censored': session.get('censored', tr_word) if is_correct else session.get('censored', ''),
+        'levenshtein_distance': score_data['levenshtein_distance']
+    })
 
 @app.route('/guess', methods=['POST'])
 @login_required

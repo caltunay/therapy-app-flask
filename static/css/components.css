@@ -156,12 +156,50 @@
     border-radius: 12px;
     border-left: 4px solid;
     backdrop-filter: blur(10px);
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
 }
 
 .alert-info {
     border-left-color: var(--info-color);
     background: rgba(8, 145, 178, 0.08);
+    color: #1f2937;
+}
+
+.alert-primary {
+    border-left-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.15);
+    color: #1f2937;
+}
+
+.alert-secondary {
+    border-left-color: #2c313b;
+    background: rgba(30, 32, 35, 0.15);
+    color: #1f2937;
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+    background: rgba(5, 150, 105, 0.1);
+    color: #1f2937;
+}
+
+.alert-danger {
+    border-left-color: var(--danger-color);
+    background: rgba(220, 38, 38, 0.1);
+    color: #1f2937;
+}
+
+.alert-warning {
+    border-left-color: var(--warning-color);
+    background: rgba(217, 119, 6, 0.1);
+    color: #1f2937;
+}
+
+/* Ensure all text in alerts is dark and visible */
+.alert h1, .alert h2, .alert h3, .alert h4, .alert h5, .alert h6,
+.alert p, .alert strong, .alert span {
+    color: #1f2937 !important;
 }
 
 /* Progress bars */
@@ -442,6 +480,7 @@ footer a:hover {
 .alert-info {
     border-left-color: var(--info-color);
     background: rgba(8, 145, 178, 0.08);
+    color: var(--dark-color);
 }
 
 .progress {

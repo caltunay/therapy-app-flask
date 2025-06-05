@@ -161,28 +161,63 @@
     // Word guess functionality
     guessWordBtn.addEventListener('click', function() {
         const userGuess = wordGuessInput.value.trim();
-        const trWord = "{{ tr_word }}";
         
         // Clear any previous messages
         hideMessage();
         
         if (!userGuess) {
-            showMessage('<p class="error-message">Lütfen bir kelime girin!</p>');
+            showMessage('<div class="alert alert-warning">Lütfen bir kelime girin!</div>');
             return;
         }
         
-        // Compare the guess with the actual word (case insensitive)
-        if (userGuess.toLowerCase() === trWord.toLowerCase()) {
-            // Reveal the entire word by creating a censored string with all letters revealed
-            const fullyCensored = trWord; // Show the complete word
-            updateCensoredWord(fullyCensored);
+        // Send guess to server for Levenshtein comparison
+        fetch('/word-guess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ guess: userGuess })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showMessage(`<div class="alert alert-danger">${data.error}</div>`);
+                return;
+            }
             
-            showMessage('<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>');
+            // Display score and message
+            let alertClass;
+            if (data.is_correct) {
+                alertClass = 'alert-success';
+            } else if (data.score >= 60) {
+                alertClass = 'alert-primary';  // Better contrast than alert-info
+            } else {
+                alertClass = 'alert-secondary'; // Good contrast for lowest scores
+            }
+            
+            let scoreDisplay = `
+                <div class="alert ${alertClass}">
+                    <h5>${data.message}</h5>
+                    <p><strong>Sizin tahmininiz:</strong> ${data.guess}</p>
+                    <p><strong>Doğru kelime:</strong> ${data.expected}</p>
+                    <p><strong>Benzerlik skoru:</strong> %${data.score}</p>
+                </div>
+            `;
+            
+            showMessage(scoreDisplay);
+            
+            // If correct enough, update the censored word display
+            if (data.is_correct && data.censored) {
+                updateCensoredWord(data.censored);
+            }
+            
             // Clear the input
             wordGuessInput.value = '';
-        } else {
-            showMessage('<p class="error-message">Yanlış tahmin!</p>');
-        }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('<div class="alert alert-danger">Bir hata oluştu. Lütfen tekrar deneyin.</div>');
+        });
     });
 
     // Allow Enter key to submit guess
