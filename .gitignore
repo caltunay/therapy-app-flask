@@ -31,6 +31,11 @@ Thumbs.db
 # Temporary files
 *.tmp
 *~
+styles_clean.css
 
 # test files
 *.wav
+
+#backup files
+*.backup
+
