@@ -219,16 +219,16 @@ def assess_pronunciation():
         score = score_data['similarity_percentage']
         if score >= 90:
             accuracy_level = "Mükemmel"
-            message = "🎉 Mükemmel! Harika telaffuz!"
+            message = "🎉 Harika! Çok güzel bir telaffuz!"
         elif score >= 75:
             accuracy_level = "İyi"
-            message = "👍 İyi iş! Böyle devam edin!"
+            message = "👍 Çok iyi! Güzel ilerliyorsunuz!"
         elif score >= 60:
-            accuracy_level = "Orta"
-            message = "👌 Fena değil. Daha net konuşmaya çalışın."
+            accuracy_level = "Güzel"
+            message = "👌 Güzel! Her seferinde daha da iyileşiyorsunuz!"
         else:
-            accuracy_level = "Pratik gerekli"
-            message = "💪 Pratik yapmaya devam edin! Daha iyi olacaksınız!"
+            accuracy_level = "Devam edin"
+            message = "💪 Harika bir başlangıç! Her deneme sizi ileriye taşıyor!"
         
         return jsonify({
             'transcript': transcript,
