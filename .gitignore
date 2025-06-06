@@ -45,4 +45,4 @@ styles_original.css
 *.backup
 
 # doc files
-DOCUMENTATION.md
+/doc
