@@ -56,11 +56,14 @@
     <!-- Word Guess Card -->
     <div class="card shadow-sm mb-4 fade-in">
         <div class="card-body">
-            <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap">
-                <input type="text" id="content-guess-input" class="form-control" 
-                       placeholder="{% if content_type == 'word' %}Kelimeyi yazın...{% else %}Cümleyi yazın...{% endif %}" 
-                       style="max-width: 300px;">
-                <button id="guess-content-btn" class="btn btn-primary">
+            <div class="mb-3">
+                <textarea id="content-guess-input" class="form-control" 
+                          rows="4"
+                          placeholder="{% if content_type == 'word' %}Kelimeyi yazın... {% else %}Cümleyi yazın... {% endif %}"
+                          style="resize: vertical; min-height: 200px;"></textarea>
+            </div>
+            <div class="text-center">
+                <button id="guess-content-btn" class="btn btn-primary btn-lg">
                     <i class="bi bi-check-circle me-1"></i>Kontrol Et
                 </button>
             </div>
@@ -300,9 +303,10 @@
     });
     document.getElementById('guess-content-btn').addEventListener('click', guessContent);
     
-    // Allow Enter key to submit guess
+    // Allow Ctrl+Enter or Shift+Enter to submit guess (Enter alone creates new line)
     document.getElementById('content-guess-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && (e.ctrlKey || e.shiftKey)) {
+            e.preventDefault(); // Prevent new line
             guessContent();
         }
     });

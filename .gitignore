@@ -44,3 +44,5 @@ styles_original.css
 #backup files
 *.backup
 
+# doc files
+DOCUMENTATION.md
