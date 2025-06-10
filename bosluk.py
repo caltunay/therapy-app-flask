@@ -38,27 +38,34 @@ def index():
         # Shuffle the word boxes so the correct answer is not always first
         word_boxes = words.copy()
         random.shuffle(word_boxes)
-        return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=word_boxes, hidden_word=hidden_word, original_word=hidden_word, original_sentence=original_sentence)
+        return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=word_boxes, hidden_word=hidden_word, original_word=hidden_word, original_sentence=original_sentence, hide_first_half=True)
     else:
-        # Kolay: hide only the first half of the word in the sentence and show first half in boxes
+        # Kolay: randomly hide either first or second half of the word
+        hide_first_half = random.choice([True, False])
         if main_idx < len(main_words):
             word = main_words[main_idx]
             half = len(word) // 2
-            censored = '_' * half + word[half:]
+            if hide_first_half:
+                censored = '_' * half + word[half:]
+            else:
+                censored = word[:half] + '_' * (len(word) - half)
             main_words[main_idx] = censored
         censored_sentence = ' '.join(main_words)
-        # Prepare first halves for word boxes
-        word_first_halves = []
+        # Prepare word halves for word boxes based on what was hidden
+        word_halves = []
         for w in words:
             if w:
                 half = len(w) // 2
-                word_first_halves.append(w[:half])
+                if hide_first_half:
+                    word_halves.append(w[:half])
+                else:
+                    word_halves.append(w[half:])
             else:
-                word_first_halves.append('')
+                word_halves.append('')
         # Shuffle the word boxes so the correct answer is not always first
-        word_boxes = word_first_halves.copy()
+        word_boxes = word_halves.copy()
         random.shuffle(word_boxes)
-        return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=word_boxes, hidden_word='_' * (len(hidden_word)//2) + hidden_word[len(hidden_word)//2:], original_word=hidden_word, original_sentence=original_sentence)
+        return render_template('bosluk.html', sentence=censored_sentence, difficulty=difficulty, word_boxes=word_boxes, hidden_word=hidden_word, original_word=hidden_word, original_sentence=original_sentence, hide_first_half=hide_first_half)
 
 @bosluk_bp.route('/guess', methods=['POST'])
 @login_required

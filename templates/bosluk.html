@@ -157,11 +157,12 @@
                     }, 500);
                 }
             } else {
-                // Kolay mode: check if selected box matches first half of original word
+                // Kolay mode: check if selected box matches the correct half of original word
                 const originalWord = "{{ original_word }}";
+                const hideFirstHalf = "{{ hide_first_half }}" === "True";
                 const half = Math.floor(originalWord.length / 2);
-                const firstHalf = originalWord.substring(0, half);
-                if (selectedWord === firstHalf) {
+                const correctHalf = hideFirstHalf ? originalWord.substring(0, half) : originalWord.substring(half);
+                if (selectedWord === correctHalf) {
                     showMessage('<p class="success-message">Tebrikler! Doğru kelimeyi buldunuz.</p>');
                     this.style.backgroundColor = "#4CAF50";
                     this.style.color = "white";
