@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, session
 import os
 import random
+import base64
 from Levenshtein import distance as levenshtein_distance
 from google.cloud import speech
 from auth_service import login_required
@@ -9,11 +10,24 @@ from data_services import get_random_entry, get_random_sentence
 # Create blueprint
 word_pronunciation_bp = Blueprint('word_pronunciation', __name__, url_prefix='/word-pronunciation')
 
-# Set up Google Cloud credentials
-if os.environ.get('LOCAL'):
+# Set up Google Cloud credentials based on environment
+env = os.environ.get('LOCAL', '').lower()
+
+if env == 'local':
+    # Local development - use local file
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_stt.json'
-else:
+elif env == 'render':
+    # Render deployment - use mounted secrets file
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/etc/secrets/google_stt.json'
+else: #if env == 'railway':
+    # Railway deployment - decode base64 environment variable
+    json_b64 = os.getenv("GOOGLE_STT_JSON_BASE64")
+    if json_b64:
+        with open("google_stt.json", "wb") as f:
+            f.write(base64.b64decode(json_b64))
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_stt.json'
+    else:
+        raise ValueError("GOOGLE_STT_JSON_BASE64 environment variable not found for Railway deployment")
 
 # Initialize Google Speech client (cached)
 _speech_client = None
@@ -109,7 +123,12 @@ def calculate_pronunciation_score(expected_text, transcribed_text):
     # Calculate similarity as percentage
     max_length = max(len(expected), len(transcribed))
     if max_length == 0:
-        return 100.0
+        return {
+            'similarity_percentage': 100.0,
+            'levenshtein_distance': 0,
+            'expected_length': len(expected),
+            'transcribed_length': len(transcribed)
+        }
     
     similarity_percentage = (1 - distance / max_length) * 100
     
@@ -153,7 +172,7 @@ def index():
 @login_required
 def get_random_content():
     """Get new random content based on current mode"""
-    mode = request.json.get('mode', 'kelime')
+    mode = (request.json or {}).get('mode', 'kelime')
     
     # Get content based on mode
     if mode == 'cumle':
