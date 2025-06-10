@@ -1,0 +1,412 @@
+{% extends "layout.html" %}
+
+{% block title %}Kelime Çalışması{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center header-bg">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-card-image me-2"></i>Kelimeyi Tahmin Et
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Image Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body text-center">
+                <div class="image-container">
+                    <img id="word-image" src="{{ image_url }}" alt="Kelime Resmi" 
+                         class="img-fluid rounded shadow-sm main-image" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Word Display Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body word-container">
+                <div class="word-display justify-content-center" id="censored-word">
+                    {% set global_index = 0 %}
+                    {% for word in tr_word.split(' ') %}
+                        <span class="word-group">
+                            {% for char in word %}
+                                {% if censored[global_index] == '_' %}
+                                    <span class="letter" data-index="{{ global_index }}">_</span>
+                                {% else %}
+                                    <span class="letter revealed" data-index="{{ global_index }}">{{ censored[global_index] }}</span>
+                                {% endif %}
+                                {% set global_index = global_index + 1 %}
+                            {% endfor %}
+                        </span>
+                        <span class="space">&nbsp;</span>
+                        {% set global_index = global_index + 1 %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Area -->
+        <div id="message-area" class="text-center mb-3" style="display: none;">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <!-- Word Guess Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body">
+                <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap">
+                    <input type="text" id="word-guess-input" class="form-control" 
+                           placeholder="Tahmini buraya yazın..." style="max-width: 300px;">
+                    <button id="guess-word-btn" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i>Tahmin Et!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Card -->
+        <div class="card shadow-sm mb-4 fade-in">
+            <div class="card-body">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <button id="hint-btn" class="btn btn-warning">
+                        <i class="bi bi-lightbulb me-1"></i>İpucu Al
+                    </button>
+                    <button id="next-btn" class="btn btn-success">
+                        <i class="bi bi-arrow-right me-1"></i>Sonraki Resim
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audio Controls -->
+        <div class="row g-3 mb-4">
+            <!-- Recording Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <button id="record-toggle-btn" class="btn btn-danger mb-2">
+                            <i class="bi bi-record-circle me-1"></i>Telaffuzunu Kaydet
+                        </button>
+                        <audio id="audio-recording" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pronunciation Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <button id="pronounce-btn" class="btn btn-info mb-2">
+                            <i class="bi bi-play-circle me-1"></i>Doğru Telaffuzu Dinle
+                        </button>
+                        <audio id="audio-pronounce" controls class="w-100" style="display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Apply responsive font sizing on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const trWord = "{{ tr_word }}";
+        const totalLength = trWord.replace(/ /g, '').length;
+        const container = document.getElementById('censored-word');
+        
+        let fontSizeClass = 'font-lg'; // Default
+        
+        // More aggressive font sizing for mobile
+        if (totalLength > 20) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 15) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 12) {
+            fontSizeClass = 'font-sm';
+        } else if (totalLength > 8) {
+            fontSizeClass = 'font-md';
+        }
+        
+        container.className = 'word-display justify-content-center ' + fontSizeClass;
+    });
+
+    // Initialize variables
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordToggleBtn = document.getElementById('record-toggle-btn');
+    const audioRecording = document.getElementById('audio-recording');
+    const audioPronounce = document.getElementById('audio-pronounce');
+    const hintBtn = document.getElementById('hint-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pronounceBtn = document.getElementById('pronounce-btn');
+    const guessWordBtn = document.getElementById('guess-word-btn');
+    const wordGuessInput = document.getElementById('word-guess-input');
+    const messageArea = document.getElementById('message-area');
+    let isRecording = false;
+
+    // Helper function to show/hide message area
+    function showMessage(html) {
+        messageArea.innerHTML = html;
+        messageArea.style.display = 'block';
+    }
+    
+    function hideMessage() {
+        messageArea.innerHTML = '';
+        messageArea.style.display = 'none';
+    }
+
+    // Word guess functionality
+    guessWordBtn.addEventListener('click', function() {
+        const userGuess = wordGuessInput.value.trim();
+        
+        // Clear any previous messages
+        hideMessage();
+        
+        if (!userGuess) {
+            showMessage('<div class="alert alert-warning">Lütfen bir kelime girin!</div>');
+            return;
+        }
+        
+        // Send guess to server for Levenshtein comparison
+        fetch('/word-guessing/word-guess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ guess: userGuess })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showMessage(`<div class="alert alert-danger">${data.error}</div>`);
+                return;
+            }
+            
+            // Display score and message
+            let alertClass;
+            if (data.is_correct) {
+                alertClass = 'alert-success';
+            } else if (data.score >= 60) {
+                alertClass = 'alert-primary';  // Better contrast than alert-info
+            } else {
+                alertClass = 'alert-secondary'; // Good contrast for lowest scores
+            }
+            
+            let scoreDisplay = `
+                <div class="alert ${alertClass}">
+                    <h5>${data.message}</h5>
+                    <p><strong>Sizin tahmininiz:</strong> ${data.guess}</p>
+                    <p><strong>Doğru kelime:</strong> ${data.expected}</p>
+                    <p><strong>Benzerlik skoru:</strong> %${data.score}</p>
+                </div>
+            `;
+            
+            showMessage(scoreDisplay);
+            
+            // If correct enough, update the censored word display
+            if (data.is_correct && data.censored) {
+                updateCensoredWord(data.censored);
+            }
+            
+            // Clear the input
+            wordGuessInput.value = '';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('<div class="alert alert-danger">Bir hata oluştu. Lütfen tekrar deneyin.</div>');
+        });
+    });
+
+    // Allow Enter key to submit guess
+    wordGuessInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            guessWordBtn.click();
+        }
+    });
+
+    // Hint button functionality
+    hintBtn.addEventListener('click', function() {
+        fetch("{{ url_for('word_guessing.hint') }}", { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                updateCensoredWord(data.censored);
+            });
+    });
+
+    // Next button functionality
+    nextBtn.addEventListener('click', function() {
+        window.location.reload();
+    });
+
+    // Pronunciation button functionality
+    pronounceBtn.addEventListener('click', function() {
+        // Add cache-busting parameter to ensure fresh audio
+        const timestamp = new Date().getTime();
+        fetch(`/word-guessing/pronounce?t=${timestamp}`)
+            .then(response => response.blob())  
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                audioPronounce.src = url;
+                audioPronounce.style.display = 'block';
+                audioPronounce.play();
+            });
+    });
+
+    // Keep letter click functionality for backward compatibility
+    document.querySelectorAll('.letter').forEach(span => {
+        span.addEventListener('click', letterClickHandler);
+    });
+
+    function letterClickHandler() {
+        if (this.textContent !== '_') return;
+        
+        // Clear any previous messages when attempting a new guess
+        hideMessage();
+        
+        const idx = this.dataset.index;
+        const input = prompt("Bir harf girin:");
+        
+        // Ensure input is a single character
+        if (input && input.length === 1 && /^[a-zA-ZğüşıöçĞÜŞİÖÇ]$/.test(input)) {
+            fetch('/word-guessing/guess', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({index: idx, letter: input})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateCensoredWord(data.censored);
+                } else {
+                    showMessage('<p class="error-message">Yanlış tahmin!</p>');
+                }
+            });
+        } else if (input) {
+            // Show error message if input is not a single letter
+            showMessage('<p class="error-message">Lütfen sadece bir harf girin!</p>');
+        }
+    }
+
+    // Toggle recording button functionality
+    recordToggleBtn.onclick = async function() {
+        if (!isRecording) {
+            // Start recording
+            audioChunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordToggleBtn.textContent = "Kaydı Durdur";
+            recordToggleBtn.classList.add("recording");
+            showMessage('<p>Kayıt yapılıyor...</p>');
+            
+            mediaRecorder.ondataavailable = e => {
+                audioChunks.push(e.data);
+            };
+            
+            mediaRecorder.onstop = e => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                audioRecording.src = URL.createObjectURL(audioBlob);
+                audioRecording.style.display = 'block';
+                audioRecording.play();
+                showMessage('<p>Kaydınız oynatılıyor...</p>');
+                
+                // Reset button state
+                isRecording = false;
+                recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+                recordToggleBtn.classList.remove("recording");
+            };
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            isRecording = false;
+            recordToggleBtn.textContent = "Telaffuzunu Kaydet";
+            recordToggleBtn.classList.remove("recording");
+        }
+    };
+
+    // Helper function to update the censored word display
+    function updateCensoredWord(censored) {
+        console.log("Censored string:", censored);
+        const trWord = "{{ tr_word }}";
+        console.log("Original word:", trWord);
+        const words = trWord.split(' ');
+        const container = document.getElementById('censored-word');
+        container.innerHTML = '';
+        
+        // Calculate appropriate font size based on word length
+        const totalLength = trWord.replace(/ /g, '').length; // Count only letters, not spaces
+        let fontSizeClass = 'font-lg'; // Default
+        
+        // More aggressive font sizing for mobile
+        if (totalLength > 20) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 15) {
+            fontSizeClass = 'font-xs';
+        } else if (totalLength > 12) {
+            fontSizeClass = 'font-sm';
+        } else if (totalLength > 8) {
+            fontSizeClass = 'font-md';
+        }
+        
+        // Apply the font size class to the container
+        container.className = 'word-display ' + fontSizeClass;
+        
+        let currentPos = 0;
+        
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+            const word = words[wordIndex];
+            const wordGroup = document.createElement('span');
+            wordGroup.className = 'word-group';
+            
+            for (let i = 0; i < word.length; i++) {
+                const globalIdx = currentPos + i;
+                
+                if (globalIdx >= censored.length) {
+                    console.log(`Warning: Index ${globalIdx} is beyond censored string length (${censored.length})`);
+                    continue;
+                }
+                
+                const span = document.createElement('span');
+                span.className = 'letter';
+                span.dataset.index = globalIdx;
+                
+                // Ensure there's always a visible character in the span, either the revealed letter or an underscore
+                if (censored[globalIdx] !== '_') {
+                    span.classList.add('revealed');
+                    span.textContent = censored[globalIdx];
+                    console.log(`Revealed at ${globalIdx}: ${censored[globalIdx]}`);
+                } else {
+                    span.textContent = '_';
+                    span.addEventListener('click', letterClickHandler);
+                    console.log(`Underscore at ${globalIdx}`);
+                }
+                
+                // Force the span to have a minimum width to ensure visibility
+                span.style.minWidth = '1em';
+                
+                wordGroup.appendChild(span);
+            }
+            
+            container.appendChild(wordGroup);
+            currentPos += word.length;
+            
+            if (wordIndex < words.length - 1) {
+                currentPos += 1;
+                
+                // Add a visual space element
+                const spaceSpan = document.createElement('span');
+                spaceSpan.className = 'space';
+                container.appendChild(spaceSpan);
+            }
+        }
+        
+        if (!censored.includes('_')) {
+            showMessage('<p class="success-message">Tebrikler! Kelimeyi buldunuz!</p>');
+        }
+    }
+</script>
+{% endblock %}
