@@ -14,6 +14,7 @@ from image_memory import image_memory_bp
 from word_pronunciation import word_pronunciation_bp
 from pronunciation_game import pronunciation_game_bp
 from word_guessing import word_guessing_bp
+from reverse_dictionary import reverse_dictionary_bp
 from data_services import get_random_entry, get_image_url
 from auth_service import auth_service, login_required
 from analytics_session_duration import get_user_session_analytics
@@ -33,6 +34,7 @@ app.register_blueprint(image_memory_bp)
 app.register_blueprint(word_pronunciation_bp)
 app.register_blueprint(pronunciation_game_bp)
 app.register_blueprint(word_guessing_bp)
+app.register_blueprint(reverse_dictionary_bp)
 
 # Context processor to make environment variables available to all templates
 @app.context_processor
@@ -167,7 +169,7 @@ def reset_password():
         if len(new_password) < 6:
             return render_template('reset_password.html', error='Şifre en az 6 karakter olmalıdır.', access_token=access_token, refresh_token=refresh_token)
         
-        result = auth_service.update_password(access_token, refresh_token, new_password)
+        result = auth_service.update_password(access_token, refresh_token or '', new_password)
         
         if result['success']:
             return render_template('reset_password.html', 
@@ -193,7 +195,7 @@ def breathing_redirect():
 @login_required
 def breathing_start_redirect():
     # Forward any query parameters
-    return redirect(url_for('breathing_bp.start', **request.args))
+    return redirect(url_for('breathing_bp.start') + '?' + request.query_string.decode())
 
 @app.route('/', methods=['GET'])
 @login_required

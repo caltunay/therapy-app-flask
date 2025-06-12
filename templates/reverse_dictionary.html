@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+
+{% block title %}Ters Sözlük - Terapi Uygulaması{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="pronunciation-container">
+    <!-- Header Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body text-center header-bg">
+            <h1 class="card-title mb-0">
+                <i class="bi bi-book me-2"></i>Ters Sözlük Egzersizi
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Mode Slider Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-3 text-center">
+                    <small class="text-muted">Yazılı</small>
+                </div>
+                <div class="col-6">
+                    <input type="range" min="0" max="1" 
+                           value="{% if mode == 'kolay' %}0{% else %}1{% endif %}" 
+                           id="mode-slider" class="form-range">
+                </div>
+                <div class="col-3 text-center">
+                    <small class="text-muted">Sesli</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Card -->
+    <div class="sentence-card">
+        <div class="sentence-text" id="currentDescription">{{ description }}</div>
+        <button class="btn btn-outline-light btn-sm" onclick="getNewContent()">
+            🎲 Sonraki Tanımı Getir
+        </button>
+    </div>
+    
+    <!-- Listen Button Card (only shown in 'zor' mode) -->
+    <div class="card shadow-sm mb-4 fade-in" id="listenCard" {% if mode == 'zor' %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+        <div class="card-body text-center">
+            <button id="pronounce-btn" class="btn btn-info btn-lg">
+                <i class="bi bi-play-circle me-2"></i>Dinle
+            </button>
+        </div>
+    </div>
+
+    <!-- Word Guess Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body">
+            <div class="mb-3">
+                <input type="text" id="word-guess-input" class="form-control" 
+                       placeholder="Kelimeyi yazın..." 
+                       style="font-size: 1.1rem; padding: 15px;">
+            </div>
+            <div class="text-center">
+                <button id="guess-word-btn" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle me-1"></i>Kontrol Et
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Player -->
+    <audio id="audio-player" style="display: none;">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Message Area -->
+    <div id="message-area"></div>
+</div>
+
+<script>
+let currentMode = '{{ mode }}';
+
+// Mode slider functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const modeSlider = document.getElementById('mode-slider');
+    const listenCard = document.getElementById('listenCard');
+    const descriptionDiv = document.getElementById('currentDescription');
+    
+    modeSlider.addEventListener('change', function() {
+        const newMode = this.value == '0' ? 'kolay' : 'zor';
+        if (newMode !== currentMode) {
+            currentMode = newMode;
+            
+            // Show/hide listen button based on mode
+            if (currentMode === 'zor') {
+                listenCard.style.display = 'block';
+                descriptionDiv.style.display = 'none';
+            } else {
+                listenCard.style.display = 'none';
+                descriptionDiv.style.display = 'block';
+            }
+            
+            getNewContent();
+            
+            // Update URL to reflect mode change
+            const url = new URL(window.location);
+            url.searchParams.set('mode', newMode);
+            window.history.pushState({}, '', url);
+        }
+    });
+    
+    // Initialize display based on current mode
+    if (currentMode === 'zor') {
+        descriptionDiv.style.display = 'none';
+    }
+});
+
+function getNewContent() {
+    fetch('/reverse-dictionary/get-new-content', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mode: currentMode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('currentDescription').textContent = data.description;
+        currentMode = data.mode;
+        
+        // Hide any previous results
+        document.getElementById('message-area').innerHTML = '';
+        
+        // Clear input
+        document.getElementById('word-guess-input').value = '';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Yeni içerik alırken hata oluştu');
+    });
+}
+
+// Pronounce description
+document.getElementById('pronounce-btn').addEventListener('click', function() {
+    console.log('pronounceDescription called');
+    // Add cache-busting parameter to ensure fresh audio
+    const timestamp = new Date().getTime();
+    const pronunciationUrl = `/reverse-dictionary/pronounce?t=${timestamp}`;
+    const audioPlayer = document.getElementById('audio-player');
+    
+    console.log('Setting audio source:', pronunciationUrl);
+    // Set audio source and play directly
+    audioPlayer.src = pronunciationUrl;
+    
+    // Play audio
+    audioPlayer.play().then(() => {
+        console.log('Audio played successfully');
+    }).catch(error => {
+        console.error('Audio play error:', error);
+        showMessage('<div class="alert alert-danger">Ses çalınamadı. Lütfen tekrar deneyin.</div>', true);
+    });
+});
+
+// Guess word
+document.getElementById('guess-word-btn').addEventListener('click', function() {
+    const userGuess = document.getElementById('word-guess-input').value.trim();
+    
+    if (!userGuess) {
+        showMessage('<div class="alert alert-warning">Lütfen bir kelime yazın.</div>', true);
+        return;
+    }
+    
+    fetch('/reverse-dictionary/guess', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ guess: userGuess })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showMessage('<div class="alert alert-danger">' + data.error + '</div>', true);
+            return;
+        }
+        
+        // Display results with scoring
+        displayGuessResults(data);
+        
+        // Clear the input for next attempt
+        document.getElementById('word-guess-input').value = '';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('<div class="alert alert-danger">Tahmin kontrol edilirken hata oluştu</div>', true);
+    });
+});
+
+// Allow Enter key to submit guess
+document.getElementById('word-guess-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('guess-word-btn').click();
+    }
+});
+
+function displayGuessResults(data) {
+    const score = data.score;
+    let scoreClass, scoreIcon;
+    
+    if (score >= 90) {
+        scoreClass = 'score-excellent';
+        scoreIcon = '🎉';
+    } else if (score >= 75) {
+        scoreClass = 'score-good';
+        scoreIcon = '👍';
+    } else if (score >= 60) {
+        scoreClass = 'score-fair';
+        scoreIcon = '👌';
+    } else {
+        scoreClass = 'score-poor';
+        scoreIcon = '💪';
+    }
+    
+    const resultHTML = `
+        <div class="card mt-3 mb-3">
+            <div class="card-body text-center">
+                <div class="score-circle ${scoreClass} mx-auto mb-3" style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white;">
+                    %${Math.round(score)}
+                </div>
+                <h4 style="color: #2c3e50;">${scoreIcon} ${data.message}</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="text-comparison">
+                            <span class="comparison-label" style="font-weight: bold; color: #6c757d;">Doğru cevap:</span><br>
+                            <span class="comparison-word" style="font-size: 1.1rem; color: #2c3e50;">${data.correct_answer}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-comparison">
+                            <span class="comparison-label" style="font-weight: bold; color: #6c757d;">Yazdığınız:</span><br>
+                            <span class="comparison-word" style="font-size: 1.1rem; color: #2c3e50;">${data.user_guess}</span>
+                        </div>
+                    </div>
+                </div>
+                ${score < 75 ? `
+                <div class="mt-3">
+                    <h6 style="color: #2c3e50;">💡 Destekleyici ipuçları:</h6>
+                    <ul class="text-start" style="display: inline-block;">
+                        <li>Tanımı dikkatlice okuyun</li>
+                        <li>Anahtar kelimelere odaklanın</li>
+                        <li>İstediğiniz kadar deneyebilirsiniz</li>
+                        <li>Küçük-büyük harf farkı önemli değil</li>
+                    </ul>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Show message without auto-hide so it stays until new content is fetched
+    showMessage(resultHTML, false);
+}
+
+function showMessage(message, autoHide = false) {
+    const messageArea = document.getElementById('message-area');
+    messageArea.innerHTML = message;
+    
+    if (autoHide) {
+        setTimeout(() => {
+            messageArea.innerHTML = '';
+        }, 3000);
+    }
+}
+</script>
+{% endblock %}
