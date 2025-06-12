@@ -12,7 +12,7 @@
     <div class="card shadow-sm mb-4 fade-in">
         <div class="card-body text-center header-bg">
             <h1 class="card-title mb-0">
-                <i class="bi bi-book me-2"></i>Ters Sözlük Egzersizi
+                <i class="bi bi-book me-2"></i>Ters Sözlük
             </h1>
         </div>
     </div>
@@ -53,6 +53,24 @@
         </div>
     </div>
 
+    <!-- Word Display Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body word-container">
+            <div id="censored-word" class="word-display justify-content-center">
+                <!-- Word will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hint Button Card -->
+    <div class="card shadow-sm mb-4 fade-in">
+        <div class="card-body text-center">
+            <button id="hint-btn" class="btn btn-warning btn-lg">
+                <i class="bi bi-lightbulb me-2"></i>İpucu Al
+            </button>
+        </div>
+    </div>
+
     <!-- Word Guess Card -->
     <div class="card shadow-sm mb-4 fade-in">
         <div class="card-body">
@@ -81,11 +99,14 @@
 <script>
 let currentMode = '{{ mode }}';
 
-// Mode slider functionality
+// Initialize censored word display on page load
 document.addEventListener('DOMContentLoaded', function() {
     const modeSlider = document.getElementById('mode-slider');
     const listenCard = document.getElementById('listenCard');
     const descriptionDiv = document.getElementById('currentDescription');
+    
+    // Initialize word display
+    updateCensoredWord('{{ censored }}');
     
     modeSlider.addEventListener('change', function() {
         const newMode = this.value == '0' ? 'kolay' : 'zor';
@@ -116,6 +137,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Hint button functionality
+document.getElementById('hint-btn').addEventListener('click', function() {
+    fetch('/reverse-dictionary/hint', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            updateCensoredWord(data.censored);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+});
+
 function getNewContent() {
     fetch('/reverse-dictionary/get-new-content', {
         method: 'POST',
@@ -129,6 +162,9 @@ function getNewContent() {
         document.getElementById('currentDescription').textContent = data.description;
         currentMode = data.mode;
         
+        // Update censored word display
+        updateCensoredWord(data.censored);
+        
         // Hide any previous results
         document.getElementById('message-area').innerHTML = '';
         
@@ -139,6 +175,87 @@ function getNewContent() {
         console.error('Error:', error);
         alert('Yeni içerik alırken hata oluştu');
     });
+}
+
+// Helper function to update the censored word display
+function updateCensoredWord(censored) {
+    const container = document.getElementById('censored-word');
+    container.innerHTML = '';
+    
+    // Split by spaces to handle multi-word entries
+    const words = censored.split(' ');
+    
+    for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+        const word = words[wordIndex];
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'word-group';
+        
+        for (let i = 0; i < word.length; i++) {
+            const span = document.createElement('span');
+            span.className = 'letter';
+            span.textContent = word[i];
+            
+            // Calculate actual index in the full string
+            let actualIndex = 0;
+            for (let w = 0; w < wordIndex; w++) {
+                actualIndex += words[w].length + 1; // +1 for space
+            }
+            actualIndex += i;
+            
+            span.dataset.index = actualIndex;
+            
+            // Add click handler for underscores
+            if (word[i] === '_') {
+                span.addEventListener('click', letterClickHandler);
+                span.style.cursor = 'pointer';
+            } else {
+                // Add revealed class for non-underscore characters
+                span.classList.add('revealed');
+            }
+            
+            wordDiv.appendChild(span);
+        }
+        
+        container.appendChild(wordDiv);
+        
+        // Add space between words (except for the last word)
+        if (wordIndex < words.length - 1) {
+            const spaceSpan = document.createElement('span');
+            spaceSpan.className = 'letter space';
+            spaceSpan.textContent = ' ';
+            container.appendChild(spaceSpan);
+        }
+    }
+}
+
+// Letter click handler for single character guessing
+function letterClickHandler() {
+    if (this.textContent !== '_') return;
+    
+    const idx = this.dataset.index;
+    const input = prompt("Bir harf girin:");
+    
+    // Ensure input is a single character
+    if (input && input.length === 1 && /^[a-zA-ZğüşıöçĞÜŞİÖÇ]$/.test(input)) {
+        fetch('/reverse-dictionary/character-guess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({index: idx, letter: input})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.censored) {
+                updateCensoredWord(data.censored);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    } else if (input) {
+        alert('Lütfen sadece bir harf girin!');
+    }
 }
 
 // Pronounce description
@@ -187,6 +304,11 @@ document.getElementById('guess-word-btn').addEventListener('click', function() {
         
         // Display results with scoring
         displayGuessResults(data);
+        
+        // If correct, update the censored word display
+        if (data.is_correct && data.censored) {
+            updateCensoredWord(data.censored);
+        }
         
         // Clear the input for next attempt
         document.getElementById('word-guess-input').value = '';

@@ -79,14 +79,32 @@ def index():
         description = 'Tanım bulunamadı'
         word = ''
     
+    # If session already has this word, use existing revealed indices
+    if session.get('reverse_dictionary_word') == word:
+        revealed_indices = session.get('reverse_dictionary_revealed_indices', [])
+    else:
+        revealed_indices = []
+        session['reverse_dictionary_revealed_indices'] = revealed_indices
+    
     # Store in session
     session['reverse_dictionary_description'] = description
     session['reverse_dictionary_word'] = word
     session['reverse_dictionary_mode'] = mode
     
+    # Build censored string
+    censored = ''
+    for i in range(len(word)):
+        if i in revealed_indices or word[i] == ' ':
+            censored += word[i]
+        else:
+            censored += '_'
+    
+    session['reverse_dictionary_censored'] = censored
+    
     return render_template('reverse_dictionary.html', 
                          description=description,
                          word=word,
+                         censored=censored,
                          mode=mode)
 
 @reverse_dictionary_bp.route('/get-new-content', methods=['POST'])
@@ -105,14 +123,29 @@ def get_new_content():
         description = 'Tanım bulunamadı'
         word = ''
     
+    # Reset revealed indices for new word
+    revealed_indices = []
+    session['reverse_dictionary_revealed_indices'] = revealed_indices
+    
     # Store in session
     session['reverse_dictionary_description'] = description
     session['reverse_dictionary_word'] = word
     session['reverse_dictionary_mode'] = mode
     
+    # Build censored string
+    censored = ''
+    for i in range(len(word)):
+        if i in revealed_indices or word[i] == ' ':
+            censored += word[i]
+        else:
+            censored += '_'
+    
+    session['reverse_dictionary_censored'] = censored
+    
     return jsonify({
         'description': description,
         'word': word,
+        'censored': censored,
         'mode': mode
     })
 
@@ -132,6 +165,65 @@ def pronounce():
     tts.write_to_fp(mp3_fp)
     mp3_fp.seek(0)
     return send_file(mp3_fp, mimetype='audio/mpeg')
+
+@reverse_dictionary_bp.route('/hint', methods=['POST'])
+@login_required
+def hint():
+    """Reveal a random character in the word"""
+    word = session.get('reverse_dictionary_word', '')
+    revealed_indices = session.get('reverse_dictionary_revealed_indices', [])
+    
+    # Find unrevealed indices (ignore spaces)
+    unrevealed = [i for i in range(len(word)) if i not in revealed_indices and word[i] != ' ']
+    
+    if unrevealed:
+        idx = random.choice(unrevealed)
+        revealed_indices.append(idx)
+        session['reverse_dictionary_revealed_indices'] = revealed_indices
+    
+    # Build censored string with the updated revealed indices
+    censored = ''
+    for i in range(len(word)):
+        if i in revealed_indices or word[i] == ' ':
+            censored += word[i]
+        else:
+            censored += '_'
+    
+    session['reverse_dictionary_censored'] = censored
+    
+    return jsonify({'censored': censored, 'revealed': len(revealed_indices)})
+
+@reverse_dictionary_bp.route('/character-guess', methods=['POST'])
+@login_required
+def character_guess():
+    """Check single character guess"""
+    data = request.get_json()
+    idx = int(data.get('index'))
+    letter = data.get('letter', '').strip()
+    word = session.get('reverse_dictionary_word', '')
+    revealed_indices = session.get('reverse_dictionary_revealed_indices', [])
+    
+    if idx < 0 or idx >= len(word):
+        return jsonify({'success': False})
+    
+    if word[idx].lower() == letter.lower():
+        if idx not in revealed_indices:
+            revealed_indices.append(idx)
+            session['reverse_dictionary_revealed_indices'] = revealed_indices
+            
+            # Build censored string with the updated revealed indices
+            censored = ''
+            for i in range(len(word)):
+                if i in revealed_indices or word[i] == ' ':
+                    censored += word[i]
+                else:
+                    censored += '_'
+            
+            session['reverse_dictionary_censored'] = censored
+            session.modified = True
+        return jsonify({'success': True, 'censored': session['reverse_dictionary_censored']})
+    else:
+        return jsonify({'success': False})
 
 @reverse_dictionary_bp.route('/guess', methods=['POST'])
 @login_required
@@ -158,15 +250,24 @@ def guess():
         if score >= 90:
             accuracy_level = "Mükemmel"
             message = "🎉 Harika! Doğru cevap!"
+            is_correct = True
         elif score >= 75:
             accuracy_level = "İyi"
             message = "👍 Çok yakın! Güzel tahmin!"
+            is_correct = True
         elif score >= 60:
             accuracy_level = "Güzel"
             message = "👌 Güzel! Doğru yoldasınız!"
+            is_correct = False
         else:
             accuracy_level = "Devam edin"
             message = "💪 Harika bir başlangıç! Tekrar deneyin!"
+            is_correct = False
+        
+        # If correct enough, reveal the whole word
+        if is_correct:
+            session['reverse_dictionary_revealed_indices'] = list(range(len(correct_word)))
+            session['reverse_dictionary_censored'] = correct_word
         
         return jsonify({
             'user_guess': user_guess,
@@ -174,6 +275,8 @@ def guess():
             'score': score,
             'accuracy_level': accuracy_level,
             'message': message,
+            'is_correct': is_correct,
+            'censored': session.get('reverse_dictionary_censored', correct_word) if is_correct else session.get('reverse_dictionary_censored', ''),
             'levenshtein_distance': score_data['levenshtein_distance']
         })
         
