@@ -1,0 +1,122 @@
+import requests
+import json
+import os
+from dotenv import load_dotenv
+import pandas as pd
+
+load_dotenv()
+
+POSTHOG_QUERY_API_KEY = os.getenv('POSTHOG_QUERY_API_KEY') 
+POSTHOG_PROJECT_ID = os.getenv('POSTHOG_PROJECT_ID') 
+
+def get_user_session_analytics(user_email):
+    """Fetch session duration analytics for a specific user"""
+    if not user_email or not POSTHOG_QUERY_API_KEY or not POSTHOG_PROJECT_ID:
+        return None
+    
+    url = f"https://eu.posthog.com/api/projects/{POSTHOG_PROJECT_ID}/query/"
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {POSTHOG_QUERY_API_KEY}'
+    }
+
+    query_string = f"""
+    SELECT 
+        distinct_sessions.email,
+        formatDateTime(sessions.`$start_timestamp`, '%d-%m-%Y') AS day,
+        round(sum(sessions.`$session_duration`)/60) AS total_session_time_minutes
+    FROM 
+        sessions
+    INNER JOIN (
+        SELECT DISTINCT 
+            properties.`$session_id` AS session_id,
+            person.properties.email AS email
+        FROM events 
+        WHERE person.properties.email = \'{user_email}\'
+    ) AS distinct_sessions
+    ON sessions.session_id = distinct_sessions.session_id
+    GROUP BY 
+        distinct_sessions.email, day
+    ORDER BY 
+        day ASC
+    """
+
+    payload = {
+        "query": {
+            "kind": "HogQLQuery",
+            "query": query_string
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Extract results and column names
+        rows = data.get('results', [])
+        columns = data.get('columns', [])
+        
+        if rows and columns:
+            # Create DataFrame
+            df = pd.DataFrame(rows, columns=columns)
+            return df.to_dict('records')  # Return as list of dictionaries for template
+        else:
+            return []
+            
+    except Exception as e:
+        print(f"Error fetching analytics: {e}")
+        return None
+
+# Keep original code for backward compatibility
+EMAIL = "<user_email>"  # This will be replaced by the function parameter
+
+url = f"https://eu.posthog.com/api/projects/{POSTHOG_PROJECT_ID}/query/"
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {POSTHOG_QUERY_API_KEY}'
+}
+
+query_string = f"""
+SELECT 
+    distinct_sessions.email,
+    formatDateTime(sessions.`$start_timestamp`, '%d-%M-%Y') AS day,
+    round(sum(sessions.`$session_duration`)/60) AS total_session_time_minutes
+FROM 
+    sessions
+INNER JOIN (
+    SELECT DISTINCT 
+        properties.`$session_id` AS session_id,
+        person.properties.email AS email
+    FROM events 
+    WHERE person.properties.email = \'{EMAIL}\'
+) AS distinct_sessions
+ON sessions.session_id = distinct_sessions.session_id
+GROUP BY 
+    distinct_sessions.email, day
+ORDER BY 
+    day ASC
+"""
+
+payload = {
+    "query": {
+        "kind": "HogQLQuery",
+        "query": query_string
+    }
+}
+
+response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+data = response.json()
+
+# Extract results and column names
+rows = data['results']
+columns = data['columns']
+
+# Create DataFrame
+df = pd.DataFrame(rows, columns=columns)
+
+print(df)

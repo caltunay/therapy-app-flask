@@ -16,6 +16,7 @@ from pronunciation_game import pronunciation_game_bp
 from word_guessing import word_guessing_bp
 from data_services import get_random_entry, get_image_url
 from auth_service import auth_service, login_required
+from analytics_session_duration import get_user_session_analytics
 
 # load env variables
 load_dotenv()
@@ -195,11 +196,16 @@ def breathing_start_redirect():
     return redirect(url_for('breathing_bp.start', **request.args))
 
 @app.route('/', methods=['GET'])
-@app.route('/', methods=['GET'])
 @login_required
 def index():
     """Homepage with game menu"""
-    return render_template('index.html')
+    user_email = session.get('user_email')
+    analytics_data = None
+    
+    if user_email:
+        analytics_data = get_user_session_analytics(user_email)
+    
+    return render_template('index.html', analytics_data=analytics_data)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

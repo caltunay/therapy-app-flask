@@ -22,6 +22,26 @@
             </div> -->
         </div>
 
+        <!-- Analytics Section -->
+        {% if analytics_data %}
+        <div class="mb-5">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0 text-dark">📊 Oturum İstatistikleriniz</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics_data|length > 0 %}
+                    <div style="height: 450px;">
+                        <canvas id="sessionChart"></canvas>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">Henüz oturum verisi bulunmuyor.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Games Grid -->
         <div class="row g-4">
             <!-- Word Guessing Game -->
@@ -147,7 +167,7 @@
                         </div>
                         <h5 class="card-title">Dinleme Egzersizi</h5>
                         <p class="card-text flex-grow-1">
-                            Dinlediğiniz kelime ve cümleleli yazın
+                            Dinlediğiniz kelime ve cümleleri yazın
                         </p>
                         <small class="text-muted mb-3">Dinlediğinizi yazın</small>
                         <a href="{{ url_for('pronunciation_game.index') }}" class="btn btn-primary game-btn">
@@ -212,4 +232,165 @@
     display: inline-block;
 }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% if analytics_data and analytics_data|length > 0 %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('sessionChart').getContext('2d');
+    const data = {{ analytics_data | tojson }};
+    
+    // Filter out current date (today)
+    const today = new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric'
+    }).replace(/\//g, '-');
+    
+    const filteredData = data.filter(item => item.day !== today);
+    
+    // Calculate linear trend line using least squares regression
+    function calculateLinearTrend(values) {
+        const n = values.length;
+        if (n < 2) return values; // Need at least 2 points for a line
+        
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        
+        values.forEach((y, x) => {
+            sumX += x;
+            sumY += y;
+            sumXY += x * y;
+            sumXX += x * x;
+        });
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+        
+        return values.map((_, x) => slope * x + intercept);
+    }
+    
+    const trendValues = calculateLinearTrend(filteredData.map(item => item.total_session_time_minutes));
+    
+    // Calculate target for current date (last trend value + 10%)
+    const lastTrendValue = trendValues.length > 0 ? trendValues[trendValues.length - 1] : 0;
+    const targetValue = Math.round(lastTrendValue * 1.1);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(item => item.day),
+            datasets: [{
+                label: 'Dakika',
+                data: data.map(item => item.total_session_time_minutes),
+                backgroundColor: '#0d6efd',
+                borderColor: '#0d6efd',
+                borderWidth: 1
+            }, {
+                label: 'Trend',
+                type: 'line',
+                data: data.map((item, index) => {
+                    // Only show trend for filtered data (excluding today)
+                    const filteredIndex = filteredData.findIndex(f => f.day === item.day);
+                    return filteredIndex >= 0 ? trendValues[filteredIndex] : null;
+                }),
+                borderColor: '#dc3545',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointBackgroundColor: '#dc3545',
+                pointBorderColor: '#dc3545',
+                pointRadius: 3,
+                tension: 0, // Make it perfectly linear
+                spanGaps: false
+            }, {
+                label: 'Bugünün hedefi',
+                type: 'line',
+                data: data.map((item) => {
+                    // Only show target for current date
+                    return item.day === today ? targetValue : null;
+                }),
+                borderColor: '#28a745',
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                borderDash: [10, 5],
+                pointBackgroundColor: '#28a745',
+                pointBorderColor: '#28a745',
+                pointRadius: 6,
+                spanGaps: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        filter: function(item, chart) {
+                            return item.text !== 'Dakika' && item.text !== 'Bugünün hedefi';
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.datasetIndex === 0) {
+                                return context.parsed.y + ' dakika';
+                            } else if (context.datasetIndex === 1) {
+                                return 'Trend: ' + context.parsed.y + ' dakika';
+                            } else {
+                                return 'Hedef: ' + context.parsed.y + ' dakika';
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Dakika'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Tarih'
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutCubic',
+                onComplete: function() {
+                    const chart = this;
+                    const ctx = chart.ctx;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillStyle = '#28a745';
+                    ctx.font = 'bold 12px Arial';
+                    
+                    // Show target label only
+                    const targetDataset = chart.data.datasets[2]; // Target dataset
+                    const meta = chart.getDatasetMeta(2);
+                    meta.data.forEach(function(point, index) {
+                        const value = targetDataset.data[index];
+                        if (value && value > 0) {
+                            ctx.fillText('Günün hedefi:', point.x, point.y - 20);
+                            ctx.fillText(value + ' dk', point.x, point.y - 5);
+                        }
+                    });
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
 {% endblock %}
