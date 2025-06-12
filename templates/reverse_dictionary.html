@@ -98,6 +98,7 @@
 
 <script>
 let currentMode = '{{ mode }}';
+let currentWord = '{{ word }}'; // Track current word globally
 
 // Initialize censored word display on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -142,7 +143,7 @@ document.getElementById('hint-btn').addEventListener('click', function() {
     fetch('/reverse-dictionary/hint', { method: 'POST' })
         .then(response => response.json())
         .then(data => {
-            updateCensoredWord(data.censored);
+            updateCensoredWord(data.censored, currentWord);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -161,9 +162,10 @@ function getNewContent() {
     .then(data => {
         document.getElementById('currentDescription').textContent = data.description;
         currentMode = data.mode;
+        currentWord = data.word; // Update global current word
         
         // Update censored word display
-        updateCensoredWord(data.censored);
+        updateCensoredWord(data.censored, data.word);
         
         // Hide any previous results
         document.getElementById('message-area').innerHTML = '';
@@ -178,53 +180,84 @@ function getNewContent() {
 }
 
 // Helper function to update the censored word display
-function updateCensoredWord(censored) {
+function updateCensoredWord(censored, currentWord = null) {
+    console.log("Censored string:", censored);
+    // Use passed word or fall back to template variable for initial load
+    const word = currentWord || '{{ word }}';
+    console.log("Original word:", word);
+    const words = word.split(' ');
     const container = document.getElementById('censored-word');
     container.innerHTML = '';
     
-    // Split by spaces to handle multi-word entries
-    const words = censored.split(' ');
+    // Calculate appropriate font size based on word length
+    const totalLength = word.replace(/ /g, '').length; // Count only letters, not spaces
+    let fontSizeClass = 'font-lg'; // Default
+    
+    // More aggressive font sizing for mobile
+    if (totalLength > 20) {
+        fontSizeClass = 'font-xs';
+    } else if (totalLength > 15) {
+        fontSizeClass = 'font-xs';
+    } else if (totalLength > 12) {
+        fontSizeClass = 'font-sm';
+    } else if (totalLength > 8) {
+        fontSizeClass = 'font-md';
+    }
+    
+    // Apply the font size class to the container
+    container.className = 'word-display ' + fontSizeClass;
+    
+    let currentPos = 0;
     
     for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
         const word = words[wordIndex];
-        const wordDiv = document.createElement('div');
-        wordDiv.className = 'word-group';
+        const wordGroup = document.createElement('span');
+        wordGroup.className = 'word-group';
         
         for (let i = 0; i < word.length; i++) {
+            const globalIdx = currentPos + i;
+            
+            if (globalIdx >= censored.length) {
+                console.log(`Warning: Index ${globalIdx} is beyond censored string length (${censored.length})`);
+                continue;
+            }
+            
             const span = document.createElement('span');
             span.className = 'letter';
-            span.textContent = word[i];
+            span.dataset.index = globalIdx;
             
-            // Calculate actual index in the full string
-            let actualIndex = 0;
-            for (let w = 0; w < wordIndex; w++) {
-                actualIndex += words[w].length + 1; // +1 for space
-            }
-            actualIndex += i;
-            
-            span.dataset.index = actualIndex;
-            
-            // Add click handler for underscores
-            if (word[i] === '_') {
-                span.addEventListener('click', letterClickHandler);
-                span.style.cursor = 'pointer';
-            } else {
-                // Add revealed class for non-underscore characters
+            // Ensure there's always a visible character in the span, either the revealed letter or an underscore
+            if (censored[globalIdx] !== '_') {
                 span.classList.add('revealed');
+                span.textContent = censored[globalIdx];
+                console.log(`Revealed at ${globalIdx}: ${censored[globalIdx]}`);
+            } else {
+                span.textContent = '_';
+                span.addEventListener('click', letterClickHandler);
+                console.log(`Underscore at ${globalIdx}`);
             }
             
-            wordDiv.appendChild(span);
+            // Force the span to have a minimum width to ensure visibility
+            span.style.minWidth = '1em';
+            
+            wordGroup.appendChild(span);
         }
         
-        container.appendChild(wordDiv);
+        container.appendChild(wordGroup);
+        currentPos += word.length;
         
-        // Add space between words (except for the last word)
         if (wordIndex < words.length - 1) {
+            currentPos += 1;
+            
+            // Add a visual space element
             const spaceSpan = document.createElement('span');
-            spaceSpan.className = 'letter space';
-            spaceSpan.textContent = ' ';
+            spaceSpan.className = 'space';
             container.appendChild(spaceSpan);
         }
+    }
+    
+    if (!censored.includes('_')) {
+        showMessage('<div class="alert alert-success">Tebrikler! Kelimeyi buldunuz!</div>');
     }
 }
 
@@ -239,15 +272,13 @@ function letterClickHandler() {
     if (input && input.length === 1 && /^[a-zA-ZğüşıöçĞÜŞİÖÇ]$/.test(input)) {
         fetch('/reverse-dictionary/character-guess', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({index: idx, letter: input})
         })
         .then(res => res.json())
         .then(data => {
             if (data.success && data.censored) {
-                updateCensoredWord(data.censored);
+                updateCensoredWord(data.censored, currentWord);
             }
         })
         .catch(error => {
@@ -307,7 +338,7 @@ document.getElementById('guess-word-btn').addEventListener('click', function() {
         
         // If correct, update the censored word display
         if (data.is_correct && data.censored) {
-            updateCensoredWord(data.censored);
+            updateCensoredWord(data.censored, currentWord);
         }
         
         // Clear the input for next attempt
