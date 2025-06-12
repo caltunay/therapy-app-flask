@@ -22,6 +22,14 @@
                 </div>
                 <div class="card-body">
                     {% if analytics_data|length > 0 %}
+                    <div id="success-message" style="display: none;" class="alert alert-success mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Tebrikler!</strong> Bugünkü hedefinize ulaştınız! 🎉
+                    </div>
+                    <div id="motivation-message" style="display: none;" class="alert alert-info mb-3">
+                        <i class="bi bi-star-fill me-2"></i>
+                        <strong>Devam edin!</strong> Hedefinize yaklaşıyorsunuz! 💪
+                    </div>
                     <div style="height: 450px;">
                         <canvas id="sessionChart"></canvas>
                     </div>
@@ -288,6 +296,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const targetValue = calculateTarget(lastTrendValue);
     
+    // Check if today's target is achieved
+    const todayData = data.find(item => item.day === today);
+    const todayMinutes = todayData ? todayData.total_session_time_minutes : 0;
+    if (todayMinutes >= targetValue && targetValue > 0) {
+        document.getElementById('success-message').style.display = 'block';
+    } else if (todayMinutes > 0 && targetValue > 0) {
+        document.getElementById('motivation-message').style.display = 'block';
+    }
+    
     new Chart(ctx, {
         type: 'bar',
         data: {
@@ -297,7 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: data.map(item => item.total_session_time_minutes),
                 backgroundColor: '#0d6efd',
                 borderColor: '#0d6efd',
-                borderWidth: 1
+                borderWidth: 1,
+                order: 2
             }, {
                 label: 'Trend',
                 type: 'line',
@@ -313,7 +331,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderColor: '#dc3545',
                 pointRadius: 3,
                 tension: 0, // Make it perfectly linear
-                spanGaps: false
+                spanGaps: false,
+                order: 1
             }, {
                 label: 'Bugünün hedefi',
                 type: 'line',
@@ -328,7 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBackgroundColor: '#28a745',
                 pointBorderColor: '#28a745',
                 pointRadius: 6,
-                spanGaps: false
+                spanGaps: false,
+                order: 0
             }]
         },
         options: {
