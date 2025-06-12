@@ -7,19 +7,10 @@
     <div class="col-lg-10 col-xl-8">
         <!-- Welcome Header -->
         <div class="text-center mb-5">
-            <div class="welcome-heart mb-4">
-                ❤️
-            </div>
             <h1 class="display-4 fw-bold text-primary mb-3">Hoş Geldin! 👋</h1>
             <p class="lead text-muted">
                 Dil becerilerinizi eğlenceli oyunlarla geliştirin! 😊
             </p>
-            <!-- <div class="rating-section mt-4">
-                <div class="stars mb-2">
-                    ⭐ ⭐ ⭐ ⭐ ⭐
-                </div>
-                <small class="text-muted">Bugün harika bir gün!</small>
-            </div> -->
         </div>
 
         <!-- Analytics Section -->
@@ -27,7 +18,7 @@
         <div class="mb-5">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0 text-dark">📊 Oturum İstatistikleriniz</h5>
+                    <h5 class="mb-0 text-dark">⏰ Günlük Çalışma ve Hedef Süreleri</h5>
                 </div>
                 <div class="card-body">
                     {% if analytics_data|length > 0 %}
@@ -235,10 +226,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% if analytics_data and analytics_data|length > 0 %}
+<script type="application/json" id="analytics-data">{{ analytics_data | tojson | safe }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('sessionChart').getContext('2d');
-    const data = {{ analytics_data | tojson }};
+    const data = JSON.parse(document.getElementById('analytics-data').textContent);
     
     // Filter out current date (today)
     const today = new Date().toLocaleDateString('en-GB', {
@@ -271,9 +263,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const trendValues = calculateLinearTrend(filteredData.map(item => item.total_session_time_minutes));
     
-    // Calculate target for current date (last trend value + 10%)
+    // Calculate target for current date using tiered system
     const lastTrendValue = trendValues.length > 0 ? trendValues[trendValues.length - 1] : 0;
-    const targetValue = Math.round(lastTrendValue * 1.1);
+    
+    function calculateTarget(trendMinutes) {
+        if (trendMinutes < 60) {
+            return Math.round(trendMinutes * 2); // 100% addition
+        } else if (trendMinutes < 120) {
+            return Math.round(trendMinutes * 1.5); // 50% addition
+        } else if (trendMinutes < 180) {
+            return Math.round(trendMinutes * 1.25); // 25% addition
+        } else if (trendMinutes < 240) {
+            return Math.round(trendMinutes * 1.15); // 15% addition
+        } else if (trendMinutes < 300) {
+            return Math.round(trendMinutes * 1.1); // 10% addition
+        } else if (trendMinutes < 360) {
+            return Math.round(trendMinutes * 1.05); // 5% addition
+        } else if (trendMinutes < 420) {
+            return Math.round(trendMinutes * 1.01); // 1% addition
+        } else {
+            return 420; // Cap at 420 minutes
+        }
+    }
+    
+    const targetValue = calculateTarget(lastTrendValue);
     
     new Chart(ctx, {
         type: 'bar',

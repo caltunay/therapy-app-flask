@@ -3,6 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 import pandas as pd
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -62,7 +63,46 @@ def get_user_session_analytics(user_email):
         if rows and columns:
             # Create DataFrame
             df = pd.DataFrame(rows, columns=columns)
-            return df.to_dict('records')  # Return as list of dictionaries for template
+            analytics_data = df.to_dict('records')
+            
+            # Fill missing dates with 0 session duration
+            if analytics_data:
+                # Parse dates and find date range
+                dates = [datetime.strptime(record['day'], '%d-%m-%Y') for record in analytics_data]
+                min_date = min(dates)
+                max_date = max(dates)
+                
+                # Create complete date range including today
+                today = datetime.now()
+                if today > max_date:
+                    max_date = today
+                
+                # Generate all dates in range
+                current_date = min_date
+                all_dates = []
+                while current_date <= max_date:
+                    all_dates.append(current_date)
+                    current_date += timedelta(days=1)
+                
+                # Convert existing data to a dictionary for quick lookup
+                existing_data = {record['day']: record for record in analytics_data}
+                
+                # Create complete dataset with missing dates filled as 0
+                complete_data = []
+                for date in all_dates:
+                    date_str = date.strftime('%d-%m-%Y')
+                    if date_str in existing_data:
+                        complete_data.append(existing_data[date_str])
+                    else:
+                        complete_data.append({
+                            'email': user_email,
+                            'day': date_str,
+                            'total_session_time_minutes': 0
+                        })
+                
+                return complete_data
+            else:
+                return []
         else:
             return []
             
