@@ -62,7 +62,7 @@
     
     {% endblock %}
 </head>
-<body class="bg-light">
+<body class="bg-light d-flex flex-column min-vh-100">
     <!-- Modern Navigation -->
     <nav class="navbar navbar-expand-xl navbar-dark bg-primary shadow-lg">
         <div class="container-fluid px-2">
@@ -149,7 +149,7 @@
         </div>
     </nav>
     
-    <main class="py-4">
+    <main class="py-4 flex-grow-1">
         <div class="container fade-in-up">
             {% block content %}{% endblock %}
         </div>
@@ -162,7 +162,7 @@
     {% block scripts %}{% endblock %}
     
     <!-- Modern Footer -->
-    <footer class="bg-dark text-light py-3 mt-5">
+    <footer class="bg-dark text-light py-3 mt-auto">
         <div class="container text-center">
             <p class="mb-0">
                 <small>
